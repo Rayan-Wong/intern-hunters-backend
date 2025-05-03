@@ -1,2 +1,2 @@
 # intern-hunters-backend
-FastAPI
+FastAPI on Python 3.12
