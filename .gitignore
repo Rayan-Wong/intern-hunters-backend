@@ -1,4 +1,9 @@
 venv
 __pycache__
 .pytest_cache
+# windows
 .venv
+.env
+config.py
+# linux
+venv 
