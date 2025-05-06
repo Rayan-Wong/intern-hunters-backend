@@ -1,13 +1,10 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python application
+name: CI on dev
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: [ "dev" ]
   pull_request:
-    branches: [ "main", "dev" ]
+    branches: [ "dev" ]
 
 permissions:
   contents: read
@@ -18,7 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout dev branch
+      uses: actions/checkout@v4
+      with:
+        ref: dev
     - name: Set up Python 3.12
       uses: actions/setup-python@v3
       with:
