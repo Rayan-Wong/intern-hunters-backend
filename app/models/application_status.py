@@ -3,7 +3,6 @@ from sqlalchemy import Uuid, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
-from .user import User
 
 class Application_Status(Base):
     __tablename__ = "application_statuses"
