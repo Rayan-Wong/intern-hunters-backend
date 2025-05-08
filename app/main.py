@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .api import routes_auth
 
+from app.db.init_db import init_db
+
 app = FastAPI()
 
 # or wherever frontend is
@@ -19,6 +21,8 @@ app.add_middleware(
 # api routes expose endpoints
 # services do the actual logic
 app.include_router(routes_auth.router)
+
+init_db()
 
 @app.get("/")
 async def root():

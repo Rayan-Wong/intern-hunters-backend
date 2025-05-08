@@ -13,6 +13,6 @@ def register_user(current_user: UserCreate):
         user = register(current_user)
         return Response(status_code=status.HTTP_201_CREATED)
     except DuplicateEmailError:
-        return HTTPException(status_code=400, detail="Email already exists")
+        raise HTTPException(status_code=400, detail="Email already exists")
     except:
-        return HTTPException(status_code=500, detail="Something wrong")
+        raise HTTPException(status_code=500, detail="Something wrong")
