@@ -15,13 +15,21 @@ router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def register(user_in: UserCreate, db: Session = Depends(get_session)):
+def register(user_in: UserCreate):
     hashed_password = pwd_context.hash(user_in.password)
-    user = User(name=user_in.name, email=user_in.email, salted_password=hashed_password)
+    user = User(
+        name=user_in.name,
+        email=user_in.email, 
+        encrypted_password=hashed_password
+    )
+    db = get_session()
     try:
         db.add(user)
         db.commit()
-    except IntegrityError as e:
+    except IntegrityError:
         db.rollback()
         raise DuplicateEmailError
+    except Exception as e:
+        print(e)
+        raise Exception
     return user
