@@ -10,5 +10,5 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
-    class Config:
-        orm_mode = True
+    class ConfigDict:
+        from_attributes = True

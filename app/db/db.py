@@ -2,7 +2,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from app.models.base import Base
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 engine = create_engine(
     url=settings.database_url,
