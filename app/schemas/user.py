@@ -6,10 +6,9 @@ class UserCreate(BaseModel):
     email: str
     password: str
 
-class UserGet(BaseModel):
-    uuid: uuid.UUID
-    name: str
+class UserLogin(BaseModel):
     email: str
+    password: str
 
     class Config:
         orm_mode = True
