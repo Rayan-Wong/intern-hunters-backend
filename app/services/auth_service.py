@@ -1,7 +1,8 @@
 from app.db.db import get_session
-from app.schemas.user import UserCreate, UserGet
+from app.schemas.user import UserCreate, UserLogin
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy import select
 
 from fastapi import APIRouter, Depends
 
@@ -9,7 +10,7 @@ from passlib.context import CryptContext
 
 from app.models.user import User
 
-from app.exceptions.db_exceptions import DuplicateEmailError
+from app.exceptions.db_exceptions import DuplicateEmailError, WrongPassword, NoAccount
 
 router = APIRouter()
 
@@ -31,5 +32,19 @@ def register(user_in: UserCreate):
         raise DuplicateEmailError
     except Exception as e:
         print(e)
-        raise Exception
+        raise e
     return user
+
+def login(user_in: UserLogin):
+    db = get_session()
+    try:
+        stmt = select(User).where(user_in.email == User.email)
+        user = db.execute(statement=stmt).scalar_one()
+        if not pwd_context.verify(user_in.password, user.encrypted_password):
+            raise WrongPassword
+        return user_in
+    except NoResultFound:
+        raise NoAccount
+    except Exception as e:
+        print(e)
+        raise e
