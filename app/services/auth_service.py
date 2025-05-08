@@ -4,17 +4,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy import select
 
-from fastapi import APIRouter, Depends
-
-from passlib.context import CryptContext
+from argon2 import PasswordHasher
 
 from app.models.user import User
 
 from app.exceptions.db_exceptions import DuplicateEmailError, WrongPassword, NoAccount
 
-router = APIRouter()
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = PasswordHasher()
 
 def register(user_in: UserCreate):
     hashed_password = pwd_context.hash(user_in.password)
@@ -40,7 +36,7 @@ def login(user_in: UserLogin):
     try:
         stmt = select(User).where(user_in.email == User.email)
         user = db.execute(statement=stmt).scalar_one()
-        if not pwd_context.verify(user_in.password, user.encrypted_password):
+        if not pwd_context.verify(user.encrypted_password, user_in.password):
             raise WrongPassword
         return user_in
     except NoResultFound:
