@@ -3,6 +3,8 @@ from tests.conftest import make_client
 
 client = make_client()
 
+# these tests are done on a mock db, so no cybersecurity flaws here
+
 def test_read_main():
     response = client.get("/")
     assert response.status_code == status.HTTP_200_OK
