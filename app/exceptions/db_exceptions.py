@@ -1,8 +1,8 @@
 class DuplicateEmailError(Exception):
     pass
 
-class NoAccount(Exception):
+class NoAccountError(Exception):
     pass
 
-class WrongPassword(Exception):
+class WrongPasswordError(Exception):
     pass

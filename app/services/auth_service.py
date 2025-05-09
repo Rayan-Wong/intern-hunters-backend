@@ -5,10 +5,11 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy import select
 
 from argon2 import PasswordHasher
+from argon2.exceptions import VerificationError
 
 from app.models.user import User
 
-from app.exceptions.db_exceptions import DuplicateEmailError, WrongPassword, NoAccount
+from app.exceptions.db_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError
 
 pwd_context = PasswordHasher()
 
@@ -36,11 +37,12 @@ def login(user_in: UserLogin):
     try:
         stmt = select(User).where(user_in.email == User.email)
         user = db.execute(statement=stmt).scalar_one()
-        if not pwd_context.verify(user.encrypted_password, user_in.password):
-            raise WrongPassword
+        pwd_context.verify(user.encrypted_password, user_in.password)
         return user_in
+    except VerificationError:
+        raise WrongPasswordError
     except NoResultFound:
-        raise NoAccount
+        raise NoAccountError
     except Exception as e:
         print(e)
         raise e

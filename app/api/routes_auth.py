@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.services.auth_service import register, login
 from app.schemas.user import UserCreate, UserLogin
-from app.exceptions.db_exceptions import DuplicateEmailError, NoAccount, WrongPassword
+from app.exceptions.db_exceptions import DuplicateEmailError, NoAccountError, WrongPasswordError
 
 import jwt
 
@@ -24,9 +24,9 @@ def login_user(user: UserLogin):
     try:
         user = login(user)
         return Response(status_code=status.HTTP_200_OK)
-    except NoAccount:
+    except NoAccountError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Account not created")
-    except WrongPassword:
+    except WrongPasswordError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Password incorrect")
     except:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something wrong")
