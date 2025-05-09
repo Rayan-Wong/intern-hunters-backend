@@ -1,32 +1,32 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from app.services.auth_service import UserAuth
-from app.schemas.user import UserCreate, UserLogin
-from app.exceptions.db_exceptions import DuplicateEmailError, NoAccountError, WrongPasswordError
+from app.core.jwt import UserJWT
+from app.schemas.user import UserCreate, UserLogin, UserToken
+from app.exceptions.auth_exceptions import DuplicateEmailError, NoAccountError, WrongPasswordError
 
 from typing import Annotated
-
-import jwt
 
 router = APIRouter(prefix="/api")
 
 @router.post("/register")
-def register_user(current_user: UserCreate, auth: Annotated[UserAuth, Depends(UserAuth)]):
+def register_user(user_in: UserCreate, auth: Annotated[UserAuth, Depends(UserAuth)]):
     try:
-        user = auth.register(current_user)
+        user = auth.register(user_in)
         return Response(status_code=status.HTTP_201_CREATED)
     except DuplicateEmailError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
-    except:
+    except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something wrong")
 
 @router.post("/login")
-def login_user(user: UserLogin, auth: Annotated[UserAuth, Depends(UserAuth)]):
+def login_user(user_in: UserLogin, auth: Annotated[UserAuth, Depends(UserAuth)], user_jwt: Annotated[UserJWT, Depends(UserJWT)]):
     try:
-        user = auth.login(user)
-        return Response(status_code=status.HTTP_200_OK)
+        user_id = auth.login(user_in)
+        user_token = user_jwt.create_jwt(user_id)
+        return UserToken(access_token=user_token, token_type="bearer")
     except NoAccountError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Account not created")
     except WrongPasswordError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Password incorrect")
-    except:
+    except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Something wrong")
