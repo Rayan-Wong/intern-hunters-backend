@@ -1,7 +1,6 @@
 import os
 os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 
-from app.core import config
 from app.db.db import engine
 from app.db.init_db import init_db
 import pytest
