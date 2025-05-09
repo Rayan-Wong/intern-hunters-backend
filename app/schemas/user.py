@@ -10,5 +10,6 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
-    class ConfigDict:
-        from_attributes = True
+class UserToken(BaseModel):
+    access_token: str
+    token_type: str

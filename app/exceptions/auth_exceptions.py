@@ -6,3 +6,6 @@ class NoAccountError(Exception):
 
 class WrongPasswordError(Exception):
     pass
+
+class BadJWTError(Exception):
+    pass

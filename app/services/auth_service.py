@@ -8,8 +8,9 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 
 from app.models.user import User
+import uuid
 
-from app.exceptions.db_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError
+from app.exceptions.auth_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError
 
 class UserAuth:
     def __init__(self):
@@ -39,7 +40,7 @@ class UserAuth:
             stmt = select(User).where(user_in.email == User.email)
             user = self.__db.execute(statement=stmt).scalar_one()
             self.__pwd_context.verify(user.encrypted_password, user_in.password)
-            return user_in
+            return user.id
         except VerificationError:
             raise WrongPasswordError
         except NoResultFound:
@@ -47,3 +48,14 @@ class UserAuth:
         except Exception as e:
             print(e)
             raise e
+    
+    def verify_id(self, id: uuid.UUID):
+        try:
+            stmt = select(User).where(id == User.id)
+            user = self.__db.execute(statement=stmt).scalar_one()
+            return user
+        except NoResultFound:
+            raise NoAccountError
+        except Exception as e:
+            print(e)
+            raise e 
