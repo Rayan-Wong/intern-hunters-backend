@@ -9,3 +9,6 @@ class WrongPasswordError(Exception):
 
 class BadJWTError(Exception):
     pass
+
+class ExpiredJWTError(Exception):
+    pass
