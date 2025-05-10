@@ -1,5 +1,5 @@
-import uuid
 from pydantic import BaseModel
+import uuid
 
 class UserCreate(BaseModel):
     name: str
@@ -13,3 +13,7 @@ class UserLogin(BaseModel):
 class UserToken(BaseModel):
     access_token: str
     token_type: str
+
+class UserSession(BaseModel):
+    sub: uuid.UUID
+    sid: uuid.UUID

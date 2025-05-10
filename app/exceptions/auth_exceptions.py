@@ -12,3 +12,6 @@ class BadJWTError(Exception):
 
 class ExpiredJWTError(Exception):
     pass
+
+class BadSessionError(Exception):
+    pass
