@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from functools import lru_cache
 
-load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env", override=True)
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / ".env", override=False)
 
 class Settings(BaseSettings):
     database_url: str
