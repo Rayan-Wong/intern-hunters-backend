@@ -62,7 +62,7 @@ def expired_token():
 @pytest.fixture
 def no_account_token():
     return BadJWTConstructor(
-        sub=str(uuid.uuid4),
+        sub=str(uuid.uuid4()),
         exp=datetime.now(timezone.utc) + timedelta(minutes=30),
         iat=datetime.now(timezone.utc)
     ).generate_token()
@@ -152,5 +152,12 @@ def test_expired_token(good_user, expired_token):
     old_token = expired_token(id)
     result = client.post("/api/token", json={
         "token": old_token
+    })
+    assert result.status_code == status.HTTP_401_UNAUTHORIZED
+
+def test_no_account_token(no_account_token):
+    bad_token = no_account_token
+    result = client.post("/api/token", json={
+        "token": bad_token
     })
     assert result.status_code == status.HTTP_401_UNAUTHORIZED
