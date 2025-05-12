@@ -1,5 +1,6 @@
 from app.db.db import get_session
-from app.schemas.user import UserCreate, UserLogin, UserSession
+from app.schemas.user import UserCreate, UserLogin
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy import select
 
@@ -30,7 +31,7 @@ class UserAuth:
             self.__db.rollback()
             raise DuplicateEmailError
         except Exception as e:
-            self.__db.rollback()
+            print(e)
             raise e
         return user
         
@@ -39,26 +40,22 @@ class UserAuth:
             stmt = select(User).where(user_in.email == User.email)
             user = self.__db.execute(statement=stmt).scalar_one()
             self.__pwd_context.verify(user.encrypted_password, user_in.password)
-            user.session_id = uuid.uuid4()
-            self.__db.commit()
-            self.__db.refresh(user)
-            return UserSession(sub=user.id, sid=user.session_id)
+            return user.id
         except VerificationError:
-            self.__db.rollback()
             raise WrongPasswordError
         except NoResultFound:
-            self.__db.rollback()
             raise NoAccountError
         except Exception as e:
-            self.__db.rollback()
+            print(e)
             raise e
     
-    def verify_session(self, id: uuid.UUID):
+    def verify_id(self, id: uuid.UUID):
         try:
             stmt = select(User).where(id == User.id)
             user = self.__db.execute(statement=stmt).scalar_one()
-            return UserSession(sub=user.id, sid=user.session_id)
+            return user
         except NoResultFound:
             raise NoAccountError
         except Exception as e:
+            print(e)
             raise e 
