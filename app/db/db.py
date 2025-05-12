@@ -14,6 +14,5 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# for FastAPI routes that will 
 def get_session():
     return SessionLocal()

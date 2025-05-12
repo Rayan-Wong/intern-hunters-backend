@@ -126,14 +126,14 @@ def test_good_token(good_user):
     )
     assert "access_token" in response.json()
     token = response.json()["access_token"]
-    result = client.post("/api/token", json={
-        "token": token
+    result = client.post("/api/token", headers={
+        "Authorization": f"Bearer {token}"
     })
     assert result.status_code == status.HTTP_200_OK
 
 def test_bad_token():
-    response = client.post("/api/token", json={
-        "token": "hi"
+    response = client.post("/api/token", headers={
+        "Authorization": "hi"
     })
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -144,20 +144,19 @@ def test_expired_token(good_user, expired_token):
         }
     )
     token = res1.json()["access_token"]
-    res2 = client.post("/api/token", json={
-            "token": token
-        }
-    )
+    res2 = client.post("/api/token", headers={
+        "Authorization": f"Bearer {token}"
+    })
     id = res2.json()["id"]
     old_token = expired_token(id)
-    result = client.post("/api/token", json={
-        "token": old_token
+    result = client.post("/api/token", headers={
+        "Authorization": f"Bearer {old_token}"
     })
     assert result.status_code == status.HTTP_401_UNAUTHORIZED
 
 def test_no_account_token(no_account_token):
     bad_token = no_account_token
-    result = client.post("/api/token", json={
-        "token": bad_token
+    result = client.post("/api/token", headers={
+        "Authorization": f"Bearer {bad_token}"
     })
     assert result.status_code == status.HTTP_401_UNAUTHORIZED
