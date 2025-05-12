@@ -1,11 +1,8 @@
 from .config import get_settings
 import jwt
-from jwt.exceptions import InvalidTokenError, ExpiredSignatureError, DecodeError, InvalidIssuedAtError
 from datetime import datetime, timezone, timedelta
 import uuid
 from pydantic import BaseModel
-from app.services.auth_service import UserAuth
-from app.exceptions.auth_exceptions import NoAccountError, BadJWTError, ExpiredJWTError
 
 settings = get_settings()
 
@@ -22,7 +19,6 @@ class UserJWT:
         self.__secret_key = settings.jwt_secret_key
         self.__algorithm = "HS256"
         self.__access_token_expire_minutes = 30
-        self.__auth = UserAuth()
     
     def create_jwt(self, data: uuid.UUID):
         to_encode = {"sub": str(data)}
@@ -32,16 +28,8 @@ class UserJWT:
         encoded_jwt = jwt.encode(to_encode, self.__secret_key, algorithm=self.__algorithm)
         return encoded_jwt
 
-    def verify_jwt(self, incoming_jwt: str):
-        try:
-            payload = jwt.decode(incoming_jwt, self.__secret_key, algorithms=self.__algorithm)
-            user_details = JWTPayload(**payload)
-            user = self.__auth.verify_id(user_details.sub)
-            return user
-        except ExpiredSignatureError:
-            raise ExpiredJWTError
-        except InvalidTokenError:
-            raise BadJWTError
-        # suppose JWT did go through
-        except NoAccountError:
-            raise NoAccountError
+    def decode_jwt(self, incoming_jwt: str):
+        payload = jwt.decode(incoming_jwt, self.__secret_key, algorithms=self.__algorithm)
+        user_details = JWTPayload(**payload)
+        return user_details.sub
+

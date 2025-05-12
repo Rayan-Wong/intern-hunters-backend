@@ -10,7 +10,10 @@ from argon2.exceptions import VerificationError
 from app.models.user import User
 import uuid
 
-from app.exceptions.auth_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError
+from app.core.jwt import UserJWT, TokenPayload
+from jwt import ExpiredSignatureError, InvalidTokenError
+
+from app.exceptions.auth_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError, ExpiredJWTError, BadJWTError
 
 class UserAuth:
     def __init__(self):
@@ -48,14 +51,3 @@ class UserAuth:
         except Exception as e:
             print(e)
             raise e
-    
-    def verify_id(self, id: uuid.UUID):
-        try:
-            stmt = select(User).where(id == User.id)
-            user = self.__db.execute(statement=stmt).scalar_one()
-            return user
-        except NoResultFound:
-            raise NoAccountError
-        except Exception as e:
-            print(e)
-            raise e 
