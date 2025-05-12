@@ -8,5 +8,5 @@ from .base import Base
 
 class User_Skills(Base):
     __tablename__ = "user_skills"
-    id: Mapped[uuid.UUID] = mapped_column(Uuid(), ForeignKey("user.id"))
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(), ForeignKey("auth.id"))
     skills: Mapped[List[str]] = mapped_column(JSON())
