@@ -11,12 +11,13 @@ from sqlalchemy.orm import Session
 
 from fastapi import Header, Depends, status
 from fastapi.exceptions import HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-def verify_jwt(authorization: str = Header(...), db: Session = Depends(get_session), user_jwt: UserJWT = Depends(UserJWT)):
+security = HTTPBearer()
+
+def verify_jwt(authorization: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_session), user_jwt: UserJWT = Depends(UserJWT)):
     try:
-        if not authorization.startswith("Bearer "):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No JWT")
-        token = authorization.removeprefix("Bearer ").strip()
+        token = authorization.credentials
         id = user_jwt.decode_jwt(token)
         stmt = select(User).where(id == User.id)
         user = db.execute(statement=stmt).scalar_one()
@@ -28,5 +29,4 @@ def verify_jwt(authorization: str = Header(...), db: Session = Depends(get_sessi
     except InvalidTokenError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JWT")
     except Exception as e:
-        print(e)
         raise e 
