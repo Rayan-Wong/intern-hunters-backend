@@ -121,7 +121,7 @@ def test_bad_token():
     response = client.post("/api/token", headers={
         "Authorization": "hi"
     })
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 def test_expired_token(good_user, expired_token):
     res1 = client.post("/api/login",
