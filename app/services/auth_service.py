@@ -16,9 +16,9 @@ from jwt import ExpiredSignatureError, InvalidTokenError
 from app.exceptions.auth_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError, ExpiredJWTError, BadJWTError
 
 class UserAuth:
-    def __init__(self):
-        self.__db = get_session()
+    def __init__(self, db: Session):
         self.__pwd_context = PasswordHasher()
+        self.__db = db
     
     def register(self, user_in: UserCreate):
         hashed_password = self.__pwd_context.hash(user_in.password)

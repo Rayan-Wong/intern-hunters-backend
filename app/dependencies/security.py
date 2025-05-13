@@ -18,7 +18,6 @@ def verify_jwt(authorization: str = Header(...), db: Session = Depends(get_sessi
         if not authorization.startswith("Bearer "):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No JWT")
         token = authorization.removeprefix("Bearer ").strip()
-        db = get_session()
         id = user_jwt.decode_jwt(token)
         stmt = select(User).where(id == User.id)
         user = db.execute(statement=stmt).scalar_one()
