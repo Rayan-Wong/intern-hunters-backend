@@ -5,7 +5,6 @@ from app.models.user import User
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy import select
 
-from app.exceptions.auth_exceptions import NoAccountError, ExpiredJWTError, BadJWTError
 from jwt import ExpiredSignatureError, InvalidTokenError
 
 from sqlalchemy.orm import Session

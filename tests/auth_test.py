@@ -1,15 +1,9 @@
 from fastapi import status
-from tests.conftest import make_client, get_jwt_secrets
+from tests.conftest import make_client, get_jwt_secrets, UserTest, good_user
 import pytest
 import jwt
 import uuid
 from datetime import datetime, timedelta, timezone
-
-class UserTest:
-    def __init__(self, name, email, encrypted_password):
-        self.name: str = name
-        self.email: str = email
-        self.encrypted_password: str = encrypted_password
 
 class BadJWTConstructor:
     def __init__(self, sub, iat, exp):
@@ -24,14 +18,6 @@ class BadJWTConstructor:
             "exp": self.exp
         }
         return jwt.encode(payload, key=self.__secret_key, algorithm=self.__algorithm)
-
-@pytest.fixture
-def good_user():
-    return UserTest(
-        name="admin",
-        email="urmum@gmail.com",
-        encrypted_password="password"
-    )
 
 @pytest.fixture
 def no_account_user():
