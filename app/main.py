@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import routes_auth
+from .api import routes_auth, routes_applications
 
 from app.db.init_db import init_db
 
@@ -21,6 +21,7 @@ app.add_middleware(
 # api routes expose endpoints
 # services do the actual logic
 app.include_router(routes_auth.router)
+app.include_router(routes_applications.router)
 
 init_db()
 

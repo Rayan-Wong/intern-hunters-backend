@@ -1,4 +1,3 @@
-from app.db.db import get_session
 from app.schemas.user import UserCreate, UserLogin
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -8,10 +7,6 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 
 from app.models.user import User
-import uuid
-
-from app.core.jwt import UserJWT, TokenPayload
-from jwt import ExpiredSignatureError, InvalidTokenError
 
 from app.exceptions.auth_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError, ExpiredJWTError, BadJWTError
 
@@ -30,13 +25,12 @@ class UserAuth:
         try:
             self.__db.add(user)
             self.__db.commit()
+            return user
         except IntegrityError:
             self.__db.rollback()
             raise DuplicateEmailError
         except Exception as e:
-            print(e)
             raise e
-        return user
         
     def login(self, user_in: UserLogin):
         try:

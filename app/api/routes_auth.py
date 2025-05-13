@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from app.services.auth_service import UserAuth
 from app.dependencies.security import verify_jwt
-from app.core.jwt import UserJWT, TokenPayload
+from app.core.jwt import UserJWT
 from app.schemas.user import UserCreate, UserLogin, UserToken
 from app.db.db import get_session
-from app.exceptions.auth_exceptions import DuplicateEmailError, NoAccountError, WrongPasswordError, BadJWTError, ExpiredJWTError
+from app.exceptions.auth_exceptions import DuplicateEmailError, NoAccountError, WrongPasswordError
 from sqlalchemy.orm import Session
 from typing import Annotated
 
