@@ -63,4 +63,4 @@ def login_user(user_in: UserLogin,
 @router.post("/token")
 def verify_token(user_id: Annotated[uuid.UUID, Depends(verify_jwt)]):
     """Test function to check JWTs generated are valid"""
-    return {"id": user_id}
+    return user_id
