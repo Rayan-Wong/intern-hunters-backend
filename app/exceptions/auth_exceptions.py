@@ -1,14 +1,15 @@
+"""No modules needed"""
 class DuplicateEmailError(Exception):
-    pass
+    """Duplicate Email Error Wrapper"""
 
 class NoAccountError(Exception):
-    pass
+    """No Account Wrapper"""
 
 class WrongPasswordError(Exception):
-    pass
+    """Wrong Password Wrapper"""
 
 class BadJWTError(Exception):
-    pass
+    """Bad JWT Wrapper"""
 
 class ExpiredJWTError(Exception):
-    pass
+    """Expired JWT Wrapper"""

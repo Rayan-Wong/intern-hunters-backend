@@ -1,4 +1,5 @@
-from app.schemas.user import UserCreate, UserLogin
+"""Modules needed for SQLAlchemy, argon2 dependency, schemas for how users are registered
+and logged in and custom exception handling"""
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy import select
@@ -7,19 +8,20 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 
 from app.models.user import User
-
-from app.exceptions.auth_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError, ExpiredJWTError, BadJWTError
+from app.exceptions.auth_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError
+from app.schemas.user import UserCreate, UserLogin
 
 class UserAuth:
+    """Auth Service"""
     def __init__(self, db: Session):
         self.__pwd_context = PasswordHasher()
         self.__db = db
-    
     def register(self, user_in: UserCreate):
+        """Register user"""
         hashed_password = self.__pwd_context.hash(user_in.password)
         user = User(
             name=user_in.name,
-            email=user_in.email, 
+            email=user_in.email,
             encrypted_password=hashed_password
         )
         try:
@@ -28,20 +30,19 @@ class UserAuth:
             return user
         except IntegrityError:
             self.__db.rollback()
-            raise DuplicateEmailError
+            raise DuplicateEmailError from IntegrityError
         except Exception as e:
             raise e
-        
     def login(self, user_in: UserLogin):
+        """Log user in and returns their user id"""
         try:
             stmt = select(User).where(user_in.email == User.email)
             user = self.__db.execute(statement=stmt).scalar_one()
             self.__pwd_context.verify(user.encrypted_password, user_in.password)
             return user.id
         except VerificationError:
-            raise WrongPasswordError
+            raise WrongPasswordError from VerificationError
         except NoResultFound:
-            raise NoAccountError
+            raise NoAccountError from NoAccountError
         except Exception as e:
-            print(e)
             raise e

@@ -1,11 +1,15 @@
-from fastapi import status
-from tests.conftest import make_client, good_user
-import pytest
+"""Modules relevant for FastAPI testing"""
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+
+from fastapi import status
+import pytest
 from pydantic import BaseModel
 
+from tests.conftest import make_client, good_user
+
 class UserApplication(BaseModel):
+    """User Application constructor for tests"""
     company_name: str
     role_name: str
     location: str
@@ -16,8 +20,9 @@ class UserApplication(BaseModel):
 client = make_client()
 
 def test_create_application(good_user):
+    """Tests if an application is successfully created"""
     client.post("/api/register",
-        json={"name": good_user.name, 
+        json={"name": good_user.name,
             "email": good_user.email,
             "password": good_user.encrypted_password
         }

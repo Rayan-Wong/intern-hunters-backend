@@ -1,4 +1,5 @@
+"""Module to import relevant SQLAlchemy dependencies"""
 from sqlalchemy.orm import DeclarativeBase
 
 class Base(DeclarativeBase):
-    pass
+    "Base SQLAlchemy Model"
