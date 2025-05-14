@@ -151,7 +151,7 @@ def test_expired_token(good_user, expired_token):
     res2 = client.post("/api/token", headers={
         "Authorization": f"Bearer {token}"
     })
-    user_id = res2.json()["id"]
+    user_id = res2.json()
     old_token = expired_token(user_id)
     result = client.post("/api/token", headers={
         "Authorization": f"Bearer {old_token}"

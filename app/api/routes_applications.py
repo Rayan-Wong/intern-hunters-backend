@@ -9,9 +9,11 @@ from app.services.user_applications_service import UserApplications
 from app.dependencies.security import verify_jwt
 from app.schemas.application_status import (UserApplicationCreate,
     UserApplicationModify,
-    UserApplicationDelete
+    UserApplicationDelete,
+    RequestUserApplication
 )
 from app.db.database import get_session
+from app.exceptions.application_exceptions import NoApplicationFound
 
 router = APIRouter(prefix="/api")
 
@@ -21,8 +23,34 @@ def create_application(application_details: UserApplicationCreate,
     db: Annotated[Session, Depends(get_session)]
 ):
     """Creates a user application, then returns the application for frontend to instantly process"""
-    user_application = UserApplications(db)
-    application = user_application.create_application(application_details,
-        user_id
-    )
-    return {"application": application}
+    try:
+        user_application = UserApplications(db)
+        application = user_application.create_application(application_details,
+            user_id
+        )
+        return application
+    except Exception as e:
+        return HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Something wrong"
+        )
+
+@router.get("/get_application")
+def get_application(post_id: int,
+    db: Annotated[Session, Depends(get_session)]
+):
+    """Returns a user application given the post id"""
+    try:
+        user_application = UserApplications(db)
+        application = user_application.get_application(post_id)
+        return application
+    except NoApplicationFound:
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found"
+        )
+    except Exception as e:
+        return HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Something wrong"
+        )

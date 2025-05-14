@@ -6,6 +6,7 @@ def get_jwt_secrets():
     return os.environ["JWT_SECRET_KEY"]
 
 class UserTest:
+    """Constructor for User"""
     def __init__(self, name, email, encrypted_password):
         self.name: str = name
         self.email: str = email
@@ -13,6 +14,7 @@ class UserTest:
 
 @pytest.fixture
 def good_user():
+    """Returns a good user"""
     return UserTest(
         name="admin",
         email="urmum@gmail.com",

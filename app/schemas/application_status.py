@@ -18,9 +18,13 @@ class UserApplicationCreate(UserApplicationBase):
     """Schema of what is needed to create a user application"""
 
 class GetUserApplication(UserApplicationBase):
-    """Scheme of what is returned when getting a user application"""
+    """Schema of what is returned when getting a user application"""
     id: int
     model_config = ConfigDict(from_attributes=True)
+
+class RequestUserApplication(BaseModel):
+    """Schema of what is needed to request for a user application"""
+    id: int
 
 class UserApplicationModify(BaseModel):
     """Schema of what is needed to modify a user application"""

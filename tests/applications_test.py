@@ -17,10 +17,9 @@ class UserApplication(BaseModel):
     action_deadline: Optional[datetime] = None
     notes: Optional[str] = None
 
-client = make_client()
-
-def test_create_application(good_user):
-    """Tests if an application is successfully created"""
+@pytest.fixture
+def get_user_token(good_user):
+    """generates good user token to use"""
     client.post("/api/register",
         json={"name": good_user.name,
             "email": good_user.email,
@@ -33,6 +32,12 @@ def test_create_application(good_user):
         }
     )
     token = res1.json()["access_token"]
+    return token
+
+client = make_client()
+
+def test_create_application(get_user_token):
+    """Tests if an application is successfully created"""
     application = UserApplication(
         company_name="Skibidi",
         role_name="Toilet",
@@ -40,6 +45,16 @@ def test_create_application(good_user):
         status="Pending",
     )
     result = client.post("/api/create_application", json=application.model_dump(), headers={
-        "Authorization": f"Bearer {token}"
+        "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
+
+def test_get_application(get_user_token):
+    """Tests if a requested valid application is successfully received"""
+    result = client.get("/api/get_application",
+        params={"post_id": 1},
+        headers={"Authorization": f"Bearer {get_user_token}"}
+    )
+    print(result.json())
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json()["company_name"] == "Skibidi"
