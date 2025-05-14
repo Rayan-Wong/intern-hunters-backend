@@ -55,6 +55,12 @@ def test_get_application(get_user_token):
         params={"post_id": 1},
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
-    print(result.json())
     assert result.status_code == status.HTTP_200_OK
     assert result.json()["company_name"] == "Skibidi"
+
+def test_get_all_applications(get_user_token):
+    """Tests if a user can get all their applications"""
+    result = client.get("/api/get_all_applications",
+        headers={"Authorization": f"Bearer {get_user_token}"}
+    )
+    assert result.status_code == status.HTTP_200_OK
