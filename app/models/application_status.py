@@ -1,13 +1,16 @@
+"""Modules relevant to store a user's application"""
+from datetime import datetime, timezone
 import uuid
+
 from sqlalchemy import Uuid, ForeignKey, DateTime, Integer
 from sqlalchemy.orm import Mapped, mapped_column
-from datetime import datetime, timezone
 
 from .base import Base
 
 APPLICATION_STATUSES = ["Applied", "Interview", "Pending Result", "Rejected", "Accepted"]
 
-class User_Application(Base):
+class UserApplication(Base):
+    """Model of how a user application is stored"""
     __tablename__ = "application_statuses"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid(), ForeignKey("user.id"))
