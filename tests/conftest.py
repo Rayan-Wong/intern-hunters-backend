@@ -1,6 +1,7 @@
 import os
 import pytest
 os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+import jwt
 
 def get_jwt_secrets():
     return os.environ["JWT_SECRET_KEY"]

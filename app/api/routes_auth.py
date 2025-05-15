@@ -15,7 +15,10 @@ from app.exceptions.auth_exceptions import DuplicateEmailError, NoAccountError, 
 router = APIRouter(prefix="/api")
 
 @router.post("/register")
-def register_user(user_in: UserCreate, db: Annotated[Session, Depends(get_session)]):
+def register_user(
+    user_in: UserCreate,
+    db: Annotated[Session, Depends(get_session)]
+):
     """Registers user, if successful returns status 201 for frontend to redirect to login"""
     try:
         auth = UserAuth(db)
@@ -33,7 +36,8 @@ def register_user(user_in: UserCreate, db: Annotated[Session, Depends(get_sessio
         ) from e
 
 @router.post("/login")
-def login_user(user_in: UserLogin,
+def login_user(
+    user_in: UserLogin,
     db: Annotated[Session, Depends(get_session)],
     user_jwt: Annotated[UserJWT, Depends(UserJWT)]
 ):
