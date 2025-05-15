@@ -43,18 +43,20 @@ class UserApplications:
             self.__db.commit()
             return GetUserApplication.model_validate(user_application)
         except Exception as e:
+            self.__db.rollback()
             raise e
     def get_application(self, application_id: int, user_id: uuid.UUID):
         """Gets a user's application given application id"""
         try:
             stmt = select(UserApplication).where(
-                application_id == UserApplication.id, user_id == UserApplication.user_id
+                and_(application_id == UserApplication.id, user_id == UserApplication.user_id)
             )
             user_application = self.__db.execute(stmt).scalar_one()
             return GetUserApplication.model_validate(user_application)
         except NoResultFound:
             # note that it is possible the user's id is invalid, but I dont want to separate
             # it because it means making two transactions
+            self.__db.rollback()
             raise NoApplicationFound from NoResultFound
         except Exception as e:
             raise e
@@ -65,6 +67,7 @@ class UserApplications:
             user_applications = self.__db.execute(stmt).scalars().all()
             return user_applications
         except Exception as e:
+            self.__db.rollback()
             raise e
     def modify_application(self,
         incoming_application: UserApplicationModify,
@@ -72,7 +75,7 @@ class UserApplications:
     ):
         try:
             stmt = select(UserApplication).where(
-                incoming_application.id == UserApplication.id, user_id == UserApplication.user_id
+                and_(incoming_application.id == UserApplication.id, user_id == UserApplication.user_id)
             )
             new_application = self.__db.execute(stmt).scalar_one()
             new_application = self.__copy_from_schema_to_model(incoming_application, new_application)
@@ -80,6 +83,25 @@ class UserApplications:
             return GetUserApplication.model_validate(new_application)
         except NoResultFound:
             # see above, could be possible uuid is invalid
+            self.__db.rollback()
             raise NoApplicationFound from NoResultFound
         except Exception as e:
+            self.__db.rollback()
+            raise e
+    def delete_application(self, application_id: int, user_id: uuid.UUID):
+        """Gets a user's application given application id"""
+        try:
+            stmt = select(UserApplication).where(
+                and_(application_id == UserApplication.id, user_id == UserApplication.user_id)
+            )
+            user_application = self.__db.execute(stmt).scalar_one()
+            self.__db.delete(user_application)
+            self.__db.commit()
+        except NoResultFound:
+            # note that it is possible the user's id is invalid, but I dont want to separate
+            # it because it means making two transactions
+            self.__db.rollback()
+            raise NoApplicationFound from NoResultFound
+        except Exception as e:
+            self.__db.rollback()
             raise e

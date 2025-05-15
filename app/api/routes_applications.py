@@ -94,3 +94,24 @@ def modify_application(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Something wrong"
         )
+
+@router.delete("/delete_application")
+def delete_application(
+    application_id: int,
+    user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
+    db: Annotated[Session, Depends(get_session)]
+):
+    try:
+        user_application = UserApplications(db)
+        user_application.delete_application(application_id, user_id)
+        return Response(status_code=status.HTTP_202_ACCEPTED)
+    except NoApplicationFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Applications not found"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Something wrong"
+        )

@@ -32,6 +32,7 @@ class UserAuth:
             self.__db.rollback()
             raise DuplicateEmailError from e
         except Exception as e:
+            self.__db.rollback()
             raise e
     def login(self, user_in: UserLogin):
         """Log user in and returns their user id"""
@@ -41,8 +42,11 @@ class UserAuth:
             self.__pwd_context.verify(user.encrypted_password, user_in.password)
             return user.id
         except VerificationError:
+            self.__db.rollback()
             raise WrongPasswordError from VerificationError
         except NoResultFound:
+            self.__db.rollback()
             raise NoAccountError from NoResultFound
         except Exception as e:
+            self.__db.rollback()
             raise e
