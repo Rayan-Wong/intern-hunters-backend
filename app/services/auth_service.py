@@ -30,7 +30,7 @@ class UserAuth:
             return user
         except IntegrityError as e:
             self.__db.rollback()
-            raise DuplicateEmailError() from e
+            raise DuplicateEmailError from e
         except Exception as e:
             raise e
     def login(self, user_in: UserLogin):
@@ -41,8 +41,8 @@ class UserAuth:
             self.__pwd_context.verify(user.encrypted_password, user_in.password)
             return user.id
         except VerificationError:
-            raise WrongPasswordError() from VerificationError
+            raise WrongPasswordError from VerificationError
         except NoResultFound:
-            raise NoAccountError() from NoResultFound
+            raise NoAccountError from NoResultFound
         except Exception as e:
             raise e
