@@ -105,3 +105,27 @@ def test_modify_wrong_application(get_user_token):
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_404_NOT_FOUND
+
+def test_delete_valid_application(get_user_token):
+    """Tests if a requested valid application is successfully deleted"""
+    result = client.delete("/api/delete_application",
+        params={"application_id": 1},
+        headers={"Authorization": f"Bearer {get_user_token}"}
+    )
+    assert result.status_code == status.HTTP_202_ACCEPTED
+
+def test_delete_invalid_application(get_user_token):
+    """Tests if a requested invalid application fails to delete"""
+    result = client.delete("/api/delete_application",
+        params={"application_id": 1},
+        headers={"Authorization": f"Bearer {get_user_token}"}
+    )
+    assert result.status_code == status.HTTP_404_NOT_FOUND
+
+def test_get_no_applications(get_user_token):
+    """Tests if a user without any applications gets an empty list"""
+    result = client.get("/api/get_all_applications",
+        headers={"Authorization": f"Bearer {get_user_token}"}
+    )
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json() == []
