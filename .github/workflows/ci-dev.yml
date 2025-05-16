@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
     - name: Checkout dev branch
       uses: actions/checkout@v4
