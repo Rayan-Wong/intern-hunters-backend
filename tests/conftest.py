@@ -1,7 +1,16 @@
+"""Imports relevant modules needed to test and override db dependency"""
 import os
 import pytest
-os.environ["DATABASE_URL"] = "sqlite:///./test.db"
-import jwt
+
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import sessionmaker
+from fastapi.testclient import TestClient
+from sqlalchemy.orm.session import Session
+
+from app.db.init_db import init_db
+from app.db.database import get_session
+from app.main import app
+from app.models.base import Base
 
 def get_jwt_secrets():
     return os.environ["JWT_SECRET_KEY"]
@@ -22,21 +31,30 @@ def good_user():
         encrypted_password="password"
     )
 
-from app.core import config
-config.get_settings.cache_clear()
-
-from app.db.database import engine
-from app.db.init_db import init_db
-from fastapi.testclient import TestClient
-from app.main import app
-
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="module")
 def create_mock_db():
-    init_db()
-    yield
-    engine.dispose()
-    if os.path.exists("test.db"):
-        os.remove("test.db")
+    """Fixture override on db dependency"""
+    engine = create_engine(
+    url="sqlite:///./test.db",
+    echo=True,
+    pool_pre_ping=True,
+    future=True
+    )
+    Base.metadata.create_all(bind=engine)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+        engine.dispose()
+        if os.path.exists("test.db"):
+            os.remove("test.db")
 
-def make_client():
+@pytest.fixture(scope="module")
+def client(create_mock_db):
+    def override_session():
+        """Wraps fixture in callable generator (todo: understand what I just said)"""
+        yield create_mock_db
+    app.dependency_overrides[get_session] = override_session # black magic
     return TestClient(app)
