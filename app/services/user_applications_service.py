@@ -25,7 +25,7 @@ class UserApplications:
     ):
         """Used to safely update incoming applications"""
         for key, value in input.model_dump().items():
-            output.key = value
+            setattr(output, key, value)
         return output
     def create_application(self, application: UserApplicationCreate, id_user: uuid.UUID):
         """Creates user application"""
@@ -80,6 +80,7 @@ class UserApplications:
             new_application = self.__db.execute(stmt).scalar_one()
             new_application = self.__copy_from_schema_to_model(incoming_application, new_application)
             self.__db.commit()
+            self.__db.refresh(new_application)
             return GetUserApplication.model_validate(new_application)
         except NoResultFound:
             # see above, could be possible uuid is invalid

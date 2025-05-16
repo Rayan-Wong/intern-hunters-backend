@@ -26,15 +26,18 @@ def verify_jwt(authorization: HTTPAuthorizationCredentials = Depends(security),
         return user.id
     except NoResultFound:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="No account"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="No account"
         ) from NoResultFound
     except ExpiredSignatureError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Expired token"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Expired token"
         ) from ExpiredSignatureError
     except InvalidTokenError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JWT"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid JWT"
         ) from InvalidTokenError
     except Exception as e:
         raise e

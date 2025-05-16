@@ -3,10 +3,11 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import status
+from fastapi.testclient import TestClient
 import pytest
 import jwt
 
-from tests.conftest import make_client, get_jwt_secrets, UserTest, good_user
+from tests.conftest import client, get_jwt_secrets, UserTest, good_user
 
 class BadJWTConstructor:
     """Bad JWT Constructor"""
@@ -62,17 +63,15 @@ def no_account_token():
         iat=datetime.now(timezone.utc)
     ).generate_token()
 
-client = make_client()
-
 # these tests are done on a mock db, so no cybersecurity flaws here
 
-def test_read_main():
+def test_read_main(client: TestClient):
     """Checks if server is alive"""
     response = client.get("/")
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {"message": "ur mum"}
 
-def test_register(good_user):
+def test_register(client: TestClient, good_user: UserTest):
     """Checks if valid user registration is successful"""
     response = client.post("/api/register",
         json={"name": good_user.name,
@@ -82,8 +81,13 @@ def test_register(good_user):
     )
     assert response.status_code == status.HTTP_201_CREATED
 
-def test_register_duplicate(good_user):
-    """Checks if user registration with same email fails"""
+def test_register_duplicate(client: TestClient, good_user: UserTest):
+    client.post("/api/register",
+        json={"name": good_user.name,
+            "email": good_user.email,
+            "password": good_user.encrypted_password
+        }
+    ) 
     response = client.post("/api/register",
         json={"name": good_user.name,
             "email": good_user.email,
@@ -92,7 +96,7 @@ def test_register_duplicate(good_user):
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-def test_login(good_user):
+def test_login(client: TestClient, good_user: UserTest):
     """Checks if user with valid credentials can log in"""
     response = client.post("/api/login",
         json={"email": good_user.email,
@@ -101,7 +105,7 @@ def test_login(good_user):
     )
     assert response.status_code == status.HTTP_200_OK
 
-def test_no_account_login(no_account_user):
+def test_no_account_login(client: TestClient, no_account_user: UserTest):
     """Checks if user with wrong email fail to log in"""
     response = client.post("/api/login",
         json={"email": no_account_user.email,
@@ -110,7 +114,7 @@ def test_no_account_login(no_account_user):
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-def test_wrong_password_login(wrong_password_user):
+def test_wrong_password_login(client: TestClient, wrong_password_user: UserTest):
     """Checks if user with correct email but wrong password fail to log in"""
     response = client.post("/api/login",
         json={"email": wrong_password_user.email,
@@ -119,7 +123,7 @@ def test_wrong_password_login(wrong_password_user):
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-def test_good_token(good_user):
+def test_good_token(client: TestClient, good_user: UserTest):
     """Checks if server accepts a JWT with good credentials"""
     response = client.post("/api/login",
         json={"email": good_user.email,
@@ -133,14 +137,14 @@ def test_good_token(good_user):
     })
     assert result.status_code == status.HTTP_200_OK
 
-def test_bad_token():
+def test_bad_token(client: TestClient):
     """Checks if server rejects empty token"""
     response = client.post("/api/token", headers={
         "Authorization": "hi"
     })
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
-def test_expired_token(good_user, expired_token):
+def test_expired_token(client: TestClient, good_user: UserTest, expired_token):
     """Checks if server rejects expired JWT with valid credentials"""
     res1 = client.post("/api/login",
         json={"email": good_user.email,
@@ -157,11 +161,13 @@ def test_expired_token(good_user, expired_token):
         "Authorization": f"Bearer {old_token}"
     })
     assert result.status_code == status.HTTP_401_UNAUTHORIZED
+    assert result.json()["detail"] == "Expired token"
 
-def test_no_account_token(no_account_token):
+def test_no_account_token(client: TestClient, no_account_token: str):
     """Checks if server rejects JWT with wrong email"""
     bad_token = no_account_token
     result = client.post("/api/token", headers={
         "Authorization": f"Bearer {bad_token}"
     })
     assert result.status_code == status.HTTP_401_UNAUTHORIZED
+    assert result.json()["detail"] == "No account"
