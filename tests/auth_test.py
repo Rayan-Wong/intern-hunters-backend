@@ -79,15 +79,17 @@ def test_register(client: TestClient, good_user: UserTest):
             "password": good_user.encrypted_password
         }
     )
-    assert response.status_code == status.HTTP_201_CREATED
+    assert response.status_code == status.HTTP_200_OK
+    assert "access_token" in response.json()
 
 def test_register_duplicate(client: TestClient, good_user: UserTest):
+    """Checks if duplicate registrations fail"""
     client.post("/api/register",
         json={"name": good_user.name,
             "email": good_user.email,
             "password": good_user.encrypted_password
         }
-    ) 
+    )
     response = client.post("/api/register",
         json={"name": good_user.name,
             "email": good_user.email,

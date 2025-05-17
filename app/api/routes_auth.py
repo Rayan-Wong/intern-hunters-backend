@@ -2,7 +2,7 @@
 from typing import Annotated
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.services.auth_service import UserAuth
@@ -17,13 +17,16 @@ router = APIRouter(prefix="/api")
 @router.post("/register")
 def register_user(
     user_in: UserCreate,
-    db: Annotated[Session, Depends(get_session)]
+    db: Annotated[Session, Depends(get_session)],
+    user_jwt: Annotated[UserJWT, Depends(UserJWT)]
 ):
-    """Registers user, if successful returns status 201 for frontend to redirect to login"""
+    """Registers user, if successful logs user in, returning userJWT
+    (and in the future session token)"""
     try:
         auth = UserAuth(db)
-        user = auth.register(user_in)
-        return Response(status_code=status.HTTP_201_CREATED)
+        user_id = auth.register(user_in)
+        user_token = user_jwt.create_jwt(user_id)
+        return UserToken(access_token=user_token, token_type="bearer")
     except DuplicateEmailError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

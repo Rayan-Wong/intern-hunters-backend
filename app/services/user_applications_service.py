@@ -20,11 +20,11 @@ class UserApplications:
         self.__db = db
     def __copy_from_schema_to_model(
             self,
-            input: UserApplicationBase,
+            app_input: UserApplicationBase,
             output: UserApplication
     ):
         """Used to safely update incoming applications"""
-        for key, value in input.model_dump().items():
+        for key, value in app_input.model_dump().items():
             setattr(output, key, value)
         return output
     def create_application(self, application: UserApplicationCreate, id_user: uuid.UUID):
@@ -73,12 +73,19 @@ class UserApplications:
         incoming_application: UserApplicationModify,
         user_id: uuid.UUID
     ):
+        """Modifies a user's application"""
         try:
             stmt = select(UserApplication).where(
-                and_(incoming_application.id == UserApplication.id, user_id == UserApplication.user_id)
+                and_(
+                        incoming_application.id == UserApplication.id,
+                        user_id == UserApplication.user_id
+                    )
             )
             new_application = self.__db.execute(stmt).scalar_one()
-            new_application = self.__copy_from_schema_to_model(incoming_application, new_application)
+            new_application = self.__copy_from_schema_to_model(
+                incoming_application,
+                new_application
+            )
             self.__db.commit()
             self.__db.refresh(new_application)
             return GetUserApplication.model_validate(new_application)

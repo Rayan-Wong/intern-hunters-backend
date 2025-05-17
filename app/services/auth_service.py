@@ -17,7 +17,7 @@ class UserAuth:
         self.__pwd_context = PasswordHasher()
         self.__db = db
     def register(self, user_in: UserCreate):
-        """Register user"""
+        """Register user and return user id"""
         hashed_password = self.__pwd_context.hash(user_in.password)
         user = User(
             name=user_in.name,
@@ -27,7 +27,7 @@ class UserAuth:
         try:
             self.__db.add(user)
             self.__db.commit()
-            return user
+            return user.id
         except IntegrityError as e:
             self.__db.rollback()
             raise DuplicateEmailError from e
