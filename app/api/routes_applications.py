@@ -34,7 +34,7 @@ def create_application(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Something wrong"
-        )
+        ) from e
 
 @router.get("/get_application")
 def get_application(
@@ -51,12 +51,12 @@ def get_application(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Application not found"
-        )
+        ) from NoApplicationFound
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Something wrong"
-        )
+        ) from e
 
 @router.get("/get_all_applications", response_model=list[GetUserApplication])
 def get_all_applications(
@@ -72,7 +72,7 @@ def get_all_applications(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Something wrong"
-        )
+        ) from e
 
 @router.post("/modify_application")
 def modify_application(
@@ -80,6 +80,7 @@ def modify_application(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
     db: Annotated[Session, Depends(get_session)]
 ):
+    """Modifies user application and returns updated version"""
     try:
         user_application = UserApplications(db)
         new_application = user_application.modify_application(old_application, user_id)
@@ -88,12 +89,12 @@ def modify_application(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Applications not found"
-        )
+        ) from NoApplicationFound
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Something wrong"
-        )
+        ) from e
 
 @router.delete("/delete_application")
 def delete_application(
@@ -101,6 +102,7 @@ def delete_application(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
     db: Annotated[Session, Depends(get_session)]
 ):
+    """Deletes user application given post id"""
     try:
         user_application = UserApplications(db)
         user_application.delete_application(application_id, user_id)
@@ -109,9 +111,9 @@ def delete_application(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Applications not found"
-        )
+        ) from NoApplicationFound
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Something wrong"
-        )
+        ) from e

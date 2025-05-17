@@ -1,5 +1,5 @@
 """Modules relevant for FastAPI testing"""
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from typing import Optional
 
 from fastapi import status
@@ -20,7 +20,7 @@ class UserApplication(BaseModel):
 
 class UserApplicationModify(UserApplication):
     """"Constructor for user application modify requests"""
-    id: int 
+    id: int
 
 @pytest.fixture
 def get_user_token(client: TestClient, good_user: UserTest):
