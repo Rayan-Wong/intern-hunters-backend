@@ -1,3 +1,4 @@
+"""Module to start dev server"""
 import uvicorn
 
 # note: my port 8000 is blocked by something

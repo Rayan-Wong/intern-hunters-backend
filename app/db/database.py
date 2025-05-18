@@ -1,6 +1,6 @@
+"""Modules relevant to SQLAlchemy and database url"""
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from app.models.base import Base
+from sqlalchemy.orm import sessionmaker
 
 from app.core.config import get_settings
 
@@ -14,6 +14,10 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# for FastAPI routes that will 
 def get_session():
-    return SessionLocal()
+    """Returns db session"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
