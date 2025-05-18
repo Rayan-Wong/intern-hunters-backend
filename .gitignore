@@ -1,6 +1,10 @@
 venv
 __pycache__
 .pytest_cache
+.vscode
+.coverage
+# I will eventually not need this
+test.db
 # windows
 .venv
 .env

@@ -1,9 +1,8 @@
+"""Modules for FastAPI dependencies, setting up routers and db connection"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from .api import routes_auth
-
 from app.db.init_db import init_db
+from .api import routes_auth, routes_applications
 
 app = FastAPI()
 
@@ -21,9 +20,11 @@ app.add_middleware(
 # api routes expose endpoints
 # services do the actual logic
 app.include_router(routes_auth.router)
+app.include_router(routes_applications.router)
 
 init_db()
 
 @app.get("/")
 async def root():
+    """Endpoint to check if server is alive"""
     return {"message": "ur mum"}
