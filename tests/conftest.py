@@ -14,6 +14,10 @@ def get_jwt_secrets():
     """Returns JWT secret key"""
     return os.environ["JWT_SECRET_KEY"]
 
+def get_session_token_secrets():
+    """Returns session token secret key"""
+    return os.environ["REFRESH_TOKEN_SECRET_KEY"]
+
 class UserTest:
     """Constructor for User"""
     def __init__(self, name, email, encrypted_password):

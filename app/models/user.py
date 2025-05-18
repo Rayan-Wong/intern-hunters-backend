@@ -13,3 +13,4 @@ class User(Base):
     name: Mapped[str]
     email: Mapped[str] = mapped_column(unique=True)
     encrypted_password: Mapped[str]
+    session_id: Mapped[uuid.UUID] = mapped_column(Uuid(), nullable=True, unique=True)
