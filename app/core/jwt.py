@@ -20,7 +20,7 @@ class UserJWT:
     def __init__(self):
         self.__secret_key = settings.jwt_secret_key
         self.__algorithm = "HS256"
-        self.__access_token_expire_minutes = 30
+        self.__access_token_expire_minutes = 15
 
     def create_jwt(self, data: uuid.UUID):
         """Creates JWT from given user id"""
@@ -34,5 +34,11 @@ class UserJWT:
     def decode_jwt(self, incoming_jwt: str):
         """Decodes JWT and returns unverified user id"""
         payload = jwt.decode(incoming_jwt, self.__secret_key, algorithms=self.__algorithm)
+        user_details = JWTPayload(**payload)
+        return user_details.sub
+
+    def decode_expired_jwt(self, incoming_jwt: str):
+        """Decodes expired JWT and returns unverified user id"""
+        payload = jwt.decode(incoming_jwt, self.__secret_key, algorithms=self.__algorithm, options={"verify_exp": False})
         user_details = JWTPayload(**payload)
         return user_details.sub
