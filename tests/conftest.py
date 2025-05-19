@@ -58,7 +58,7 @@ def create_mock_db():
 def client(create_mock_db):
     """Override db dependency"""
     def override_session():
-        """Wraps fixture in callable generator (todo: understand what I just said)"""
+        """Wraps fixture in a non-fixture function to allow fixture to be used as dependency injection"""
         yield create_mock_db
     app.dependency_overrides[get_session] = override_session
     return TestClient(app)
