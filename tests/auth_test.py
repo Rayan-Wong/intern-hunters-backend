@@ -339,3 +339,29 @@ def test_wrong_account_session_token(client: TestClient, good_user: UserTest, ex
     })
     assert result.status_code == status.HTTP_401_UNAUTHORIZED
     assert result.json()["detail"] == "No account"
+
+def test_logout(client: TestClient, good_user: UserTest):
+    """Tests if logout is successful"""
+    res1 = client.post("/api/login",
+        json={"email": good_user.email,
+            "password": good_user.encrypted_password
+        }
+    )
+    assert res1.status_code == status.HTTP_200_OK
+    token = res1.json()["access_token"]
+    response = client.post("/api/logout", headers={
+        "Authorization": f"Bearer {token}"  
+    })
+    assert response.status_code == status.HTTP_200_OK
+    result = client.post("/api/token", headers={
+        "Authorization": f"Bearer {token}"
+    }, cookies={
+        "refresh_token": res1.cookies.get("refresh_token")
+    })
+    assert result.status_code == status.HTTP_401_UNAUTHORIZED
+
+def test_invalid_logout(client: TestClient, no_account_token: str):
+    response = client.post("/api/logout", headers={
+        "Authorization": f"Bearer {no_account_token}"  
+    })
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED

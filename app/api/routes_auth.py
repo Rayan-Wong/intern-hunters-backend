@@ -15,6 +15,12 @@ from app.exceptions.auth_exceptions import DuplicateEmailError, NoAccountError, 
 
 router = APIRouter(prefix="/api")
 
+EMAIL_ALREADY_EXISTS = "Email already exists"
+SOMETHING_WRONG = "Something wrong"
+ACCOUNT_NOT_CREATED = "Account not created"
+PASSWORD_INCORRECT = "Password incorrect"
+BAD_REFRESH_TOKEN = "Bad refresh token"
+
 @router.post("/register")
 def register_user(
     user_in: UserCreate,
@@ -41,13 +47,13 @@ def register_user(
     except DuplicateEmailError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already exists"
+            detail=EMAIL_ALREADY_EXISTS
         ) from DuplicateEmailError
     except Exception as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Something wrong"
+            detail=SOMETHING_WRONG
         ) from e
 
 @router.post("/login")
@@ -76,17 +82,17 @@ def login_user(
     except NoAccountError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Account not created"
+            detail=ACCOUNT_NOT_CREATED
         ) from NoAccountError
     except WrongPasswordError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Password incorrect"
+            detail=PASSWORD_INCORRECT
         ) from WrongPasswordError
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Something wrong"
+            detail=SOMETHING_WRONG
         ) from e
 
 @router.post("/token")
@@ -98,6 +104,11 @@ def refresh_token(
     refresh_token: str = Cookie(),
 ):
     """Refreshes user jwt and refresh token, given refresh token"""
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=BAD_REFRESH_TOKEN
+        )
     session_id = use_session_token(user_id, refresh_token, db)
     user_token = user_jwt.create_jwt(user_id)
     response.set_cookie(
@@ -108,6 +119,28 @@ def refresh_token(
         samesite="Lax"
     )
     return UserToken(access_token=user_token, token_type="bearer")
+
+@router.post("/logout")
+def logout(
+    user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
+    db: Annotated[Session, Depends(get_session)],
+    ):
+    """Logs user out"""
+    try:
+        user_auth = UserAuth(db)
+        session_id = user_auth.log_out(user_id)
+        return Response(status_code=status.HTTP_200_OK)
+    except NoAccountError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ACCOUNT_NOT_CREATED
+        ) from NoAccountError
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=SOMETHING_WRONG
+        ) from e
 
 @router.post("/test_login")
 def verify_token(user_id: Annotated[uuid.UUID, Depends(verify_jwt)]):
@@ -121,4 +154,9 @@ def verify_session_token(
     refresh_token: str = Cookie(),
 ):
     """Test function to check session id is valid"""
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=BAD_REFRESH_TOKEN
+        )
     return test_session_token(user_id, refresh_token, db)
