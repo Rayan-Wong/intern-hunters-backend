@@ -17,6 +17,9 @@ from app.exceptions.application_exceptions import NoApplicationFound
 
 router = APIRouter(prefix="/api")
 
+APPLICATION_NOT_FOUND = "Application not found"
+SOMETHING_WRONG = "Something wrong"
+
 @router.post("/create_application")
 def create_application(
     application_details: UserApplicationCreate,
@@ -33,7 +36,7 @@ def create_application(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Something wrong"
+            detail=SOMETHING_WRONG
         ) from e
 
 @router.get("/get_application")
@@ -50,12 +53,12 @@ def get_application(
     except NoApplicationFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Application not found"
+            detail=APPLICATION_NOT_FOUND
         ) from NoApplicationFound
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Something wrong"
+            detail=SOMETHING_WRONG
         ) from e
 
 @router.get("/get_all_applications", response_model=list[GetUserApplication])
@@ -71,7 +74,7 @@ def get_all_applications(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Something wrong"
+            detail=SOMETHING_WRONG
         ) from e
 
 @router.post("/modify_application")
@@ -88,12 +91,12 @@ def modify_application(
     except NoApplicationFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Applications not found"
+            detail=APPLICATION_NOT_FOUND
         ) from NoApplicationFound
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Something wrong"
+            detail=SOMETHING_WRONG
         ) from e
 
 @router.delete("/delete_application")
@@ -110,10 +113,10 @@ def delete_application(
     except NoApplicationFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Applications not found"
+            detail=APPLICATION_NOT_FOUND
         ) from NoApplicationFound
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Something wrong"
+            detail=SOMETHING_WRONG
         ) from e

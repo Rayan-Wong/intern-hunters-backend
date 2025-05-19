@@ -16,6 +16,7 @@ class UserAuth:
     def __init__(self, db: Session):
         self.__pwd_context = PasswordHasher()
         self.__db = db
+
     def register(self, user_in: UserCreate):
         """Register user and return user id"""
         hashed_password = self.__pwd_context.hash(user_in.password)
@@ -34,6 +35,7 @@ class UserAuth:
         except Exception as e:
             self.__db.rollback()
             raise e
+        
     def login(self, user_in: UserLogin):
         """Log user in and returns their user id"""
         try:
@@ -44,6 +46,22 @@ class UserAuth:
         except VerificationError:
             self.__db.rollback()
             raise WrongPasswordError from VerificationError
+        except NoResultFound:
+            self.__db.rollback()
+            raise NoAccountError from NoResultFound
+        except Exception as e:
+            self.__db.rollback()
+            raise e
+        
+    def log_out(self, user_id: UserLogin):
+        """Logs user out and returns None (idk)"""
+        try:
+            stmt = select(User).where(user_id == User.id)
+            user = self.__db.execute(statement=stmt).scalar_one()
+            user.session_id = None
+            self.__db.commit()
+            self.__db.refresh(user)
+            return user.session_id
         except NoResultFound:
             self.__db.rollback()
             raise NoAccountError from NoResultFound

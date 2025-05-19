@@ -22,6 +22,7 @@ EXPIRED_TOKEN = "Expired token"
 INVALID_JWT = "Invalid JWT"
 NO_REFRESH_TOKEN = "No refresh token"
 INVALID_SESSION_TOKEN = "Invalid session token"
+LOGGED_OUT = "Logged out"
 
 def verify_jwt(authorization: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_session),
@@ -141,7 +142,7 @@ def use_session_token(
         ) from InvalidTokenError
     except Exception as e:
         raise e
-
+    
 def test_session_token(
         user_id: uuid.UUID,
         refresh_token: str,
