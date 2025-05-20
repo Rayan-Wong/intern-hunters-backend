@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_, asc
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound, StatementError
 
 from app.models.application_status import UserApplication
 from app.schemas.application_status import (
@@ -12,7 +12,7 @@ from app.schemas.application_status import (
     GetUserApplication,
     UserApplicationModify
 )
-from app.exceptions.application_exceptions import NoApplicationFound
+from app.exceptions.application_exceptions import NoApplicationFound, InvalidApplication
 
 class UserApplications:
     """Service for user applications"""
@@ -44,6 +44,10 @@ class UserApplications:
             self.__db.add(user_application)
             self.__db.commit()
             return GetUserApplication.model_validate(user_application)
+        except StatementError as e:
+            # means given status input is not in enum
+            self.__db.rollback()
+            raise InvalidApplication from e
         except Exception as e:
             self.__db.rollback()
             raise e
@@ -62,6 +66,7 @@ class UserApplications:
             self.__db.rollback()
             raise NoApplicationFound from NoResultFound
         except Exception as e:
+            self.__db.rollback()
             raise e
         
     def get_all_applications(self, user_id: uuid.UUID):

@@ -13,11 +13,12 @@ from app.schemas.application_status import (
     GetUserApplication
 )
 from app.db.database import get_session
-from app.exceptions.application_exceptions import NoApplicationFound
+from app.exceptions.application_exceptions import NoApplicationFound, InvalidApplication
 
 router = APIRouter(prefix="/api")
 
 APPLICATION_NOT_FOUND = "Application not found"
+INVALID_APPPLICATION = "Invalid application"
 SOMETHING_WRONG = "Something wrong"
 
 @router.post("/create_application")
@@ -33,6 +34,11 @@ def create_application(
             user_id
         )
         return application
+    except InvalidApplication as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=INVALID_APPPLICATION
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
