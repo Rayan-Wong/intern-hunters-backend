@@ -2,7 +2,7 @@
 import uuid
 
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, asc
 from sqlalchemy.exc import NoResultFound
 
 from app.models.application_status import UserApplication
@@ -18,6 +18,7 @@ class UserApplications:
     """Service for user applications"""
     def __init__(self, db: Session):
         self.__db = db
+
     def __copy_from_schema_to_model(
             self,
             app_input: UserApplicationBase,
@@ -27,6 +28,7 @@ class UserApplications:
         for key, value in app_input.model_dump().items():
             setattr(output, key, value)
         return output
+    
     def create_application(self, application: UserApplicationCreate, id_user: uuid.UUID):
         """Creates user application"""
         user_application = UserApplication(
@@ -45,6 +47,7 @@ class UserApplications:
         except Exception as e:
             self.__db.rollback()
             raise e
+        
     def get_application(self, application_id: int, user_id: uuid.UUID):
         """Gets a user's application given application id"""
         try:
@@ -60,6 +63,7 @@ class UserApplications:
             raise NoApplicationFound from NoResultFound
         except Exception as e:
             raise e
+        
     def get_all_applications(self, user_id: uuid.UUID):
         """Gets all user's applications"""
         try:
@@ -69,6 +73,22 @@ class UserApplications:
         except Exception as e:
             self.__db.rollback()
             raise e
+        
+    def get_all_deadlines(self, user_id: uuid.UUID):
+        """Gets all user's deadlines, in ascending order"""
+        try:
+            stmt = select(UserApplication).where(
+                and_(
+                    user_id == UserApplication.user_id,
+                    UserApplication.action_deadline.isnot(None)
+                )
+            ).order_by(asc(UserApplication.action_deadline))
+            user_applications = self.__db.execute(stmt).scalars().all()
+            return user_applications
+        except Exception as e:
+            self.__db.rollback()
+            raise e
+        
     def modify_application(self,
         incoming_application: UserApplicationModify,
         user_id: uuid.UUID
@@ -96,6 +116,7 @@ class UserApplications:
         except Exception as e:
             self.__db.rollback()
             raise e
+        
     def delete_application(self, application_id: int, user_id: uuid.UUID):
         """Gets a user's application given application id"""
         try:

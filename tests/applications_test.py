@@ -1,9 +1,10 @@
 """Modules relevant for FastAPI testing"""
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import status
 from fastapi.testclient import TestClient
+from fastapi.encoders import jsonable_encoder
 import pytest
 from pydantic import BaseModel
 
@@ -79,6 +80,14 @@ def test_get_all_applications(client: TestClient, get_user_token):
     assert result.status_code == status.HTTP_200_OK
     assert result.json()
 
+def test_get_no_deadlines(client: TestClient, get_user_token: str):
+    """Tests if a user gets no applications if they have no deadlines"""
+    result = client.get("/api/get_all_deadlines",
+        headers={"Authorization": f"Bearer {get_user_token}"}
+    )
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json() == []
+
 def test_modify_application(client: TestClient, get_user_token):
     """Tests if a user can modify the correct application"""
     application = UserApplicationModify(
@@ -101,7 +110,7 @@ def test_modify_wrong_application(client: TestClient, get_user_token):
         role_name="Toilet",
         location="Tung",
         status="Pending",
-        id=2
+        id=9999
     )
     result = client.post("/api/modify_application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
@@ -131,3 +140,33 @@ def test_get_no_applications(client: TestClient, get_user_token):
     )
     assert result.status_code == status.HTTP_200_OK
     assert result.json() == []
+
+def test_get_all_deadlines(client: TestClient, get_user_token: str):
+    """Tests if a user gets all applications with deadlines in order"""
+    application1 = UserApplication(
+        company_name="Sigma",
+        role_name="Boy",
+        location="ts",
+        status="Interview",
+        action_deadline=datetime.now(timezone.utc)+timedelta(days=3)
+    )
+    submission1 = client.post("/api/create_application", json=jsonable_encoder(application1.model_dump()), headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    application2 = UserApplication(
+        company_name="Melvin",
+        role_name="Gurt",
+        location="Yo",
+        status="Interview",
+        action_deadline=datetime.now(timezone.utc)+timedelta(days=2)
+    )
+    submission2 = client.post("/api/create_application", json=jsonable_encoder(application2.model_dump()), headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    result = client.get("/api/get_all_deadlines",
+        headers={"Authorization": f"Bearer {get_user_token}"}
+    )
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json()
+    first_result = result.json()[0]
+    assert first_result["company_name"] == "Melvin"
