@@ -76,6 +76,22 @@ def get_all_applications(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
         ) from e
+    
+@router.get("/get_all_deadlines", response_model=list[GetUserApplication])
+def get_all_deadlines(
+    user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
+    db: Annotated[Session, Depends(get_session)]
+):
+    """Returns all users' applications with deadlines in ascending order"""
+    try:
+        user_application = UserApplications(db)
+        applications = user_application.get_all_deadlines(user_id)
+        return applications
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=SOMETHING_WRONG
+        ) from e
 
 @router.post("/modify_application")
 def modify_application(
