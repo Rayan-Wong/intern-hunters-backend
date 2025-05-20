@@ -126,21 +126,25 @@ def use_session_token(
         db.refresh(result)
         return new_session_id
     except NoResultFound:
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=NO_ACCOUNT
         ) from NoResultFound
     except ExpiredSignatureError:
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=EXPIRED_TOKEN
         ) from ExpiredSignatureError
     except InvalidTokenError:
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=INVALID_SESSION_TOKEN
         ) from InvalidTokenError
     except Exception as e:
+        db.rollback()
         raise e
     
 def test_session_token(

@@ -50,7 +50,6 @@ def register_user(
             detail=EMAIL_ALREADY_EXISTS
         ) from DuplicateEmailError
     except Exception as e:
-        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -136,7 +135,6 @@ def logout(
             detail=ACCOUNT_NOT_CREATED
         ) from NoAccountError
     except Exception as e:
-        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
