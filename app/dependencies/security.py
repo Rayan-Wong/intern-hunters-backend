@@ -99,11 +99,49 @@ def create_session_id(
     except Exception as e:
         raise e
 
-# todo: possible refactor this function since the function below is the same thing
+def check_session_token(
+        user_id: uuid.UUID,
+        refresh_token: str,
+        db: Session
+):
+    """Checks session token. If valid, returns user with that session token"""
+    try:
+        if not refresh_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=NO_REFRESH_TOKEN
+            )
+        session_id = UserRefreshToken().decode_refresh_token(refresh_token)
+        stmt = select(User).where(
+            and_(
+                User.id == user_id,
+                User.session_id == session_id
+            )
+        )
+        result = db.execute(stmt).scalar_one()
+        return result
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=NO_ACCOUNT
+        ) from NoResultFound
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=EXPIRED_TOKEN
+        ) from ExpiredSignatureError
+    except InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=INVALID_SESSION_TOKEN
+        ) from InvalidTokenError
+    except Exception as e:
+        raise e
+
 def use_session_token(
         user_id: uuid.UUID,
         refresh_token: str,
-        db: Session,
+        db: Session
 ):
     """Uses session token. If valid, creates a new session id, stores into db and returns it"""
     try:
@@ -112,37 +150,12 @@ def use_session_token(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=NO_REFRESH_TOKEN
             )
-        session_id = UserRefreshToken().decode_refresh_token(refresh_token)
-        stmt = select(User).where(
-            and_(
-                user_id == User.id,
-                session_id == User.session_id
-            )
-        )
-        result = db.execute(stmt).scalar_one()
+        result = check_session_token(user_id, refresh_token, db)
         new_session_id = uuid.uuid4()
         result.session_id = new_session_id
         db.commit()
         db.refresh(result)
         return new_session_id
-    except NoResultFound:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=NO_ACCOUNT
-        ) from NoResultFound
-    except ExpiredSignatureError:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=EXPIRED_TOKEN
-        ) from ExpiredSignatureError
-    except InvalidTokenError:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=INVALID_SESSION_TOKEN
-        ) from InvalidTokenError
     except Exception as e:
         db.rollback()
         raise e
@@ -150,38 +163,8 @@ def use_session_token(
 def test_session_token(
         user_id: uuid.UUID,
         refresh_token: str,
-        db: Session,
+        db: Session
 ):
-    """Tests session token. If valid, returns said session token"""
-    try:
-        if not refresh_token:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=NO_REFRESH_TOKEN
-            )
-        session_id = UserRefreshToken().decode_refresh_token(refresh_token)
-        stmt = select(User).where(
-            and_(
-                user_id == User.id,
-                session_id == User.session_id
-            )
-        )
-        result = db.execute(stmt).scalar_one()
-        return result.session_id
-    except NoResultFound:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=NO_ACCOUNT
-        ) from NoResultFound
-    except ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=EXPIRED_TOKEN
-        ) from ExpiredSignatureError
-    except InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=INVALID_SESSION_TOKEN
-        ) from InvalidTokenError
-    except Exception as e:
-        raise e
+    """Tests session token. If valid, returns same same session token"""
+    result = check_session_token(user_id, refresh_token, db)
+    return result.session_id
