@@ -21,7 +21,7 @@ APPLICATION_NOT_FOUND = "Application not found"
 INVALID_APPPLICATION = "Invalid application"
 SOMETHING_WRONG = "Something wrong"
 
-@router.post("/create_application")
+@router.post("/application")
 def create_application(
     application_details: UserApplicationCreate,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
@@ -45,7 +45,7 @@ def create_application(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.get("/get_application")
+@router.get("/application")
 def get_application(
     post_id: int,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
@@ -67,7 +67,7 @@ def get_application(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.get("/get_all_applications", response_model=list[GetUserApplication])
+@router.get("/all_applications", response_model=list[GetUserApplication])
 def get_all_applications(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
     db: Annotated[Session, Depends(get_session)]
@@ -83,7 +83,7 @@ def get_all_applications(
             detail=SOMETHING_WRONG
         ) from e
     
-@router.get("/get_all_deadlines", response_model=list[GetUserApplication])
+@router.get("/all_deadlines", response_model=list[GetUserApplication])
 def get_all_deadlines(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
     db: Annotated[Session, Depends(get_session)]
@@ -99,7 +99,7 @@ def get_all_deadlines(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.post("/modify_application")
+@router.put("/application")
 def modify_application(
     old_application: UserApplicationModify,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
@@ -121,7 +121,7 @@ def modify_application(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.delete("/delete_application")
+@router.delete("/application")
 def delete_application(
     application_id: int,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
