@@ -9,7 +9,7 @@ from app.services.auth_service import UserAuth
 from app.dependencies.security import verify_jwt, verify_expired_jwt, create_session_id, use_session_token, test_session_token
 from app.core.jwt import UserJWT
 from app.core.refresh_token import UserRefreshToken
-from app.schemas.user import UserCreate, UserLogin, UserToken
+from app.schemas.user import UserCreate, UserLogin, UserToken, UserLoginReturns
 from app.db.database import get_session
 from app.exceptions.auth_exceptions import DuplicateEmailError, NoAccountError, WrongPasswordError
 
@@ -67,9 +67,9 @@ def login_user(
     (and in the future session token)"""
     try:
         auth = UserAuth(db)
-        user_id = auth.login(user_in)
-        user_token = user_jwt.create_jwt(user_id)
-        session_id = create_session_id(user_id, db)
+        user_creds = auth.login(user_in)
+        user_token = user_jwt.create_jwt(user_creds.id)
+        session_id = create_session_id(user_creds.id, db)
         response.set_cookie(
             key="refresh_token",
             value=refresh_token.create_session_token(session_id),
@@ -77,7 +77,7 @@ def login_user(
             secure=True,
             samesite="Lax"
         )
-        return UserToken(access_token=user_token, token_type="bearer")
+        return UserLoginReturns(access_token=user_token, token_type="bearer", name=user_creds.name)
     except NoAccountError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

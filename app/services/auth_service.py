@@ -1,8 +1,12 @@
 """Modules needed for SQLAlchemy, argon2 dependency, schemas for how users are registered
 and logged in and custom exception handling"""
+import uuid
+
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy import select
+
+from pydantic import BaseModel
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
@@ -10,6 +14,10 @@ from argon2.exceptions import VerificationError
 from app.models.user import User
 from app.exceptions.auth_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError
 from app.schemas.user import UserCreate, UserLogin
+
+class UserIn(BaseModel):
+    id: uuid.UUID
+    name: str
 
 class UserAuth:
     """Auth Service"""
@@ -42,7 +50,8 @@ class UserAuth:
             stmt = select(User).where(user_in.email == User.email)
             user = self.__db.execute(statement=stmt).scalar_one()
             self.__pwd_context.verify(user.encrypted_password, user_in.password)
-            return user.id
+            user_details = UserIn(id=user.id, name=user.name)
+            return user_details
         except VerificationError:
             self.__db.rollback()
             raise WrongPasswordError from VerificationError

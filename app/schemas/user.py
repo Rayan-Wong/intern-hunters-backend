@@ -12,6 +12,11 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+class UserLoginReturns(BaseModel):
+    access_token: str
+    token_type: str
+    name: str
+
 class UserToken(BaseModel):
     """Schema of how a JWT (or a refresh token when implemented) is returned"""
     access_token: str
