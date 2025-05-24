@@ -48,7 +48,7 @@ def test_create_application(client: TestClient, get_user_token: str):
         location="Tung",
         status="Applied",
     )
-    result = client.post("/api/create_application", json=application.model_dump(), headers={
+    result = client.post("/api/application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
@@ -62,14 +62,14 @@ def test_create_invalid_application(client: TestClient, get_user_token: str):
         location="Tung",
         status="ur mum",
     )
-    result = client.post("/api/create_application", json=application.model_dump(), headers={
+    result = client.post("/api/application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_400_BAD_REQUEST
 
 def test_get_application(client: TestClient, get_user_token: str):
     """Tests if a requested valid application is successfully received"""
-    result = client.get("/api/get_application",
+    result = client.get("/api/application",
         params={"post_id": 1},
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
@@ -78,7 +78,7 @@ def test_get_application(client: TestClient, get_user_token: str):
 
 def test_get_wrong_application(client: TestClient, get_user_token: str):
     """Tests if a requested invalid application fails"""
-    result = client.get("/api/get_application",
+    result = client.get("/api/application",
         params={"post_id": 2},
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
@@ -87,7 +87,7 @@ def test_get_wrong_application(client: TestClient, get_user_token: str):
 
 def test_get_all_applications(client: TestClient, get_user_token: str):
     """Tests if a user can get all their applications"""
-    result = client.get("/api/get_all_applications",
+    result = client.get("/api/all_applications",
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_200_OK
@@ -95,7 +95,7 @@ def test_get_all_applications(client: TestClient, get_user_token: str):
 
 def test_get_no_deadlines(client: TestClient, get_user_token: str):
     """Tests if a user gets no applications if they have no deadlines"""
-    result = client.get("/api/get_all_deadlines",
+    result = client.get("/api/all_deadlines",
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_200_OK
@@ -110,7 +110,7 @@ def test_modify_application(client: TestClient, get_user_token: str):
         status="Interview",
         id=1
     )
-    result = client.post("/api/modify_application", json=application.model_dump(), headers={
+    result = client.put("/api/application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
@@ -125,14 +125,14 @@ def test_modify_wrong_application(client: TestClient, get_user_token: str):
         status="Pending",
         id=9999
     )
-    result = client.post("/api/modify_application", json=application.model_dump(), headers={
+    result = client.put("/api/application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_404_NOT_FOUND
 
 def test_delete_valid_application(client: TestClient, get_user_token: str):
     """Tests if a requested valid application is successfully deleted"""
-    result = client.delete("/api/delete_application",
+    result = client.delete("/api/application",
         params={"application_id": 1},
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
@@ -140,7 +140,7 @@ def test_delete_valid_application(client: TestClient, get_user_token: str):
 
 def test_delete_invalid_application(client: TestClient, get_user_token: str):
     """Tests if a requested invalid application fails to delete"""
-    result = client.delete("/api/delete_application",
+    result = client.delete("/api/application",
         params={"application_id": 1},
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
@@ -148,7 +148,7 @@ def test_delete_invalid_application(client: TestClient, get_user_token: str):
 
 def test_get_no_applications(client: TestClient, get_user_token: str):
     """Tests if a user without any applications gets an empty list"""
-    result = client.get("/api/get_all_applications",
+    result = client.get("/api/all_applications",
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_200_OK
@@ -163,7 +163,7 @@ def test_get_all_deadlines(client: TestClient, get_user_token: str):
         status="Interview",
         action_deadline=datetime.now(timezone.utc)+timedelta(days=3)
     )
-    submission1 = client.post("/api/create_application", json=jsonable_encoder(application1.model_dump()), headers={
+    submission1 = client.post("/api/application", json=jsonable_encoder(application1.model_dump()), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     application2 = UserApplication(
@@ -173,10 +173,10 @@ def test_get_all_deadlines(client: TestClient, get_user_token: str):
         status="Interview",
         action_deadline=datetime.now(timezone.utc)+timedelta(days=2)
     )
-    submission2 = client.post("/api/create_application", json=jsonable_encoder(application2.model_dump()), headers={
+    submission2 = client.post("/api/application", json=jsonable_encoder(application2.model_dump()), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
-    result = client.get("/api/get_all_deadlines",
+    result = client.get("/api/all_deadlines",
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_200_OK
