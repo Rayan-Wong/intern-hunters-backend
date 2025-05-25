@@ -12,6 +12,14 @@ from app.core.refresh_token import UserRefreshToken
 from app.schemas.user import UserCreate, UserLogin, UserToken, UserLoginReturns
 from app.db.database import get_session
 from app.exceptions.auth_exceptions import DuplicateEmailError, NoAccountError, WrongPasswordError
+from app.openapi import (
+    NO_ACCOUNT_RESPONSE,
+    INVALID_SESSION_TOKEN_RESPONSE,
+    EMAIL_ALREADY_EXISTS_RESPONSE,
+    PASSWORD_INCORRECT_RESPONSE,
+    BAD_REFRESH_TOKEN_RESPONSE,
+    BAD_JWT
+)
 
 router = APIRouter(prefix="/api")
 
@@ -21,7 +29,11 @@ ACCOUNT_NOT_CREATED = "Account not created"
 PASSWORD_INCORRECT = "Password incorrect"
 BAD_REFRESH_TOKEN = "Bad refresh token"
 
-@router.post("/register")
+@router.post("/register",
+    tags=["register_user"],
+    response_model=UserToken,
+    responses={**EMAIL_ALREADY_EXISTS_RESPONSE}
+)
 def register_user(
     user_in: UserCreate,
     db: Annotated[Session, Depends(get_session)],
@@ -55,7 +67,11 @@ def register_user(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.post("/login")
+@router.post("/login",
+    tags=["login_user"],
+    response_model=UserLoginReturns,
+    responses={**NO_ACCOUNT_RESPONSE, **PASSWORD_INCORRECT_RESPONSE}
+)
 def login_user(
     user_in: UserLogin,
     db: Annotated[Session, Depends(get_session)],
@@ -94,20 +110,23 @@ def login_user(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.post("/token")
+@router.post("/token",
+    tags=["refresh_token"],
+    response_model=UserToken,
+    responses={
+        **NO_ACCOUNT_RESPONSE,
+        **INVALID_SESSION_TOKEN_RESPONSE,
+        **BAD_REFRESH_TOKEN_RESPONSE
+    }
+)
 def refresh_token(
     user_id: Annotated[uuid.UUID, Depends(verify_expired_jwt)],
     user_jwt: Annotated[UserJWT, Depends(UserJWT)],
     response: Response,
     db: Annotated[Session, Depends(get_session)],
-    refresh_token: str = Cookie(),
+    refresh_token: str = Cookie(description="Refresh Token"),
 ):
     """Refreshes user jwt and refresh token, given refresh token"""
-    if not refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=BAD_REFRESH_TOKEN
-        )
     session_id = use_session_token(user_id, refresh_token, db)
     user_token = user_jwt.create_jwt(user_id)
     response.set_cookie(
@@ -119,7 +138,10 @@ def refresh_token(
     )
     return UserToken(access_token=user_token, token_type="bearer")
 
-@router.post("/logout")
+@router.post("/logout",
+    tags=["logout_user"],
+    responses={**NO_ACCOUNT_RESPONSE, **BAD_JWT}
+)
 def logout(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
     db: Annotated[Session, Depends(get_session)],
