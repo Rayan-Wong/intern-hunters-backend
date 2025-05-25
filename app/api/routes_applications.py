@@ -14,6 +14,11 @@ from app.schemas.application_status import (
 )
 from app.db.database import get_session
 from app.exceptions.application_exceptions import NoApplicationFound, InvalidApplication
+from app.openapi import (
+    INVALID_APPLICATION_RESPONSE,
+    APPLICATION_NOT_FOUND_RESPONSE,
+    BAD_JWT
+)
 
 router = APIRouter(prefix="/api")
 
@@ -21,7 +26,11 @@ APPLICATION_NOT_FOUND = "Application not found"
 INVALID_APPPLICATION = "Invalid application"
 SOMETHING_WRONG = "Something wrong"
 
-@router.post("/application")
+@router.post("/application",
+    tags=["application"],
+    response_model=GetUserApplication,
+    responses={**INVALID_APPLICATION_RESPONSE, **BAD_JWT}
+)
 def create_application(
     application_details: UserApplicationCreate,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
@@ -45,7 +54,11 @@ def create_application(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.get("/application")
+@router.get("/application",
+    tags=["application"],
+    response_model=GetUserApplication,
+    responses={**APPLICATION_NOT_FOUND_RESPONSE, **BAD_JWT}
+)
 def get_application(
     post_id: int,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
@@ -67,7 +80,11 @@ def get_application(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.get("/all_applications", response_model=list[GetUserApplication])
+@router.get("/all_applications",
+    response_model=list[GetUserApplication],
+    tags=["all_applications"],
+    responses=BAD_JWT
+)
 def get_all_applications(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
     db: Annotated[Session, Depends(get_session)]
@@ -83,7 +100,11 @@ def get_all_applications(
             detail=SOMETHING_WRONG
         ) from e
     
-@router.get("/all_deadlines", response_model=list[GetUserApplication])
+@router.get("/all_deadlines",
+    response_model=list[GetUserApplication],
+    tags=["all_deadlines"],
+    responses=BAD_JWT
+)
 def get_all_deadlines(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
     db: Annotated[Session, Depends(get_session)]
@@ -99,7 +120,11 @@ def get_all_deadlines(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.put("/application")
+@router.put("/application",
+    tags=["application"],
+    response_model=GetUserApplication,
+    responses={**APPLICATION_NOT_FOUND_RESPONSE, **BAD_JWT}
+)
 def modify_application(
     old_application: UserApplicationModify,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
@@ -121,7 +146,10 @@ def modify_application(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.delete("/application")
+@router.delete("/application",
+    tags=["application"],
+    responses={**APPLICATION_NOT_FOUND_RESPONSE, **BAD_JWT}
+)
 def delete_application(
     application_id: int,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
