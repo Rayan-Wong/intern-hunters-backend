@@ -1,10 +1,12 @@
 """Modules for FastAPI dependencies, setting up routers and db connection"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.db.init_db import init_db
 from .api import routes_auth, routes_applications
+from .openapi import tags_metadata
 
-app = FastAPI()
+app = FastAPI(openapi_tags=tags_metadata)
 
 # or wherever frontend is
 origins = ["http://localhost:8000"]
