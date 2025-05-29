@@ -8,8 +8,7 @@ from .openapi import tags_metadata
 
 app = FastAPI(openapi_tags=tags_metadata)
 
-# or wherever frontend is
-origins = ["http://localhost:8000"]
+origins = ["http://localhost:5173"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
