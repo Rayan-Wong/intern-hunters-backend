@@ -3,8 +3,7 @@ __pycache__
 .pytest_cache
 .vscode
 .coverage
-# I will eventually not need this
-test.db
+test_resume.pdf
 # windows
 .venv
 .env
