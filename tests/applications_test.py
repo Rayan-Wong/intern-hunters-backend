@@ -3,9 +3,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import status
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from fastapi.encoders import jsonable_encoder
 import pytest
+import pytest_asyncio
 from pydantic import BaseModel
 
 from tests.conftest import UserTest, client, good_user
@@ -23,16 +24,16 @@ class UserApplicationModify(UserApplication):
     """"Constructor for user application modify requests"""
     id: int
 
-@pytest.fixture
-def get_user_token(client: TestClient, good_user: UserTest):
+@pytest_asyncio.fixture
+async def get_user_token(client: AsyncClient, good_user: UserTest):
     """generates good user token to use"""
-    client.post("/api/register",
+    await client.post("/api/register",
         json={"name": good_user.name,
             "email": good_user.email,
             "password": good_user.encrypted_password
         }
     )
-    res1 = client.post("/api/login",
+    res1 = await client.post("/api/login",
         json={"email": good_user.email,
             "password": good_user.encrypted_password
         }
@@ -40,7 +41,8 @@ def get_user_token(client: TestClient, good_user: UserTest):
     token = res1.json()["access_token"]
     return token
 
-def test_create_application(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_create_application(client: AsyncClient, get_user_token: str):
     """Tests if an application is successfully created"""
     application = UserApplication(
         company_name="Skibidi",
@@ -48,13 +50,14 @@ def test_create_application(client: TestClient, get_user_token: str):
         location="Tung",
         status="Applied",
     )
-    result = client.post("/api/application", json=application.model_dump(), headers={
+    result = await client.post("/api/application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
     assert result.json()["company_name"] == "Skibidi"
 
-def test_create_invalid_application(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_create_invalid_application(client: AsyncClient, get_user_token: str):
     """Tests if invalid application is not created"""
     application = UserApplication(
         company_name="Skibidi",
@@ -62,46 +65,51 @@ def test_create_invalid_application(client: TestClient, get_user_token: str):
         location="Tung",
         status="ur mum",
     )
-    result = client.post("/api/application", json=application.model_dump(), headers={
+    result = await client.post("/api/application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_400_BAD_REQUEST
 
-def test_get_application(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_get_application(client: AsyncClient, get_user_token: str):
     """Tests if a requested valid application is successfully received"""
-    result = client.get("/api/application",
+    result = await client.get("/api/application",
         params={"post_id": 1},
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_200_OK
     assert result.json()["company_name"] == "Skibidi"
 
-def test_get_wrong_application(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_get_wrong_application(client: AsyncClient, get_user_token: str):
     """Tests if a requested invalid application fails"""
-    result = client.get("/api/application",
+    result = await client.get("/api/application",
         params={"post_id": 2},
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     print(result.json())
     assert result.status_code == status.HTTP_404_NOT_FOUND
 
-def test_get_all_applications(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_get_all_applications(client: AsyncClient, get_user_token: str):
     """Tests if a user can get all their applications"""
-    result = client.get("/api/all_applications",
+    result = await client.get("/api/all_applications",
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_200_OK
     assert result.json()
 
-def test_get_no_deadlines(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_get_no_deadlines(client: AsyncClient, get_user_token: str):
     """Tests if a user gets no applications if they have no deadlines"""
-    result = client.get("/api/all_deadlines",
+    result = await client.get("/api/all_deadlines",
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_200_OK
     assert result.json() == []
 
-def test_modify_application(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_modify_application(client: AsyncClient, get_user_token: str):
     """Tests if a user can modify the correct application"""
     application = UserApplicationModify(
         company_name="Skibidi",
@@ -110,13 +118,14 @@ def test_modify_application(client: TestClient, get_user_token: str):
         status="Interview",
         id=1
     )
-    result = client.put("/api/application", json=application.model_dump(), headers={
+    result = await client.put("/api/application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
     assert result.json()["status"] == "Interview"
 
-def test_modify_wrong_application(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_modify_wrong_application(client: AsyncClient, get_user_token: str):
     """Tests if user fails to modify wrong application"""
     application = UserApplicationModify(
         company_name="Skibidi",
@@ -125,36 +134,40 @@ def test_modify_wrong_application(client: TestClient, get_user_token: str):
         status="Pending",
         id=9999
     )
-    result = client.put("/api/application", json=application.model_dump(), headers={
+    result = await client.put("/api/application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_404_NOT_FOUND
 
-def test_delete_valid_application(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_delete_valid_application(client: AsyncClient, get_user_token: str):
     """Tests if a requested valid application is successfully deleted"""
-    result = client.delete("/api/application",
+    result = await client.delete("/api/application",
         params={"application_id": 1},
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_202_ACCEPTED
 
-def test_delete_invalid_application(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_delete_invalid_application(client: AsyncClient, get_user_token: str):
     """Tests if a requested invalid application fails to delete"""
-    result = client.delete("/api/application",
+    result = await client.delete("/api/application",
         params={"application_id": 1},
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_404_NOT_FOUND
 
-def test_get_no_applications(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_get_no_applications(client: AsyncClient, get_user_token: str):
     """Tests if a user without any applications gets an empty list"""
-    result = client.get("/api/all_applications",
+    result = await client.get("/api/all_applications",
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_200_OK
     assert result.json() == []
 
-def test_get_all_deadlines(client: TestClient, get_user_token: str):
+@pytest.mark.asyncio
+async def test_get_all_deadlines(client: AsyncClient, get_user_token: str):
     """Tests if a user gets all applications with deadlines in order"""
     application1 = UserApplication(
         company_name="Sigma",
@@ -163,7 +176,7 @@ def test_get_all_deadlines(client: TestClient, get_user_token: str):
         status="Interview",
         action_deadline=datetime.now(timezone.utc)+timedelta(days=3)
     )
-    submission1 = client.post("/api/application", json=jsonable_encoder(application1.model_dump()), headers={
+    submission1 = await client.post("/api/application", json=jsonable_encoder(application1.model_dump()), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     application2 = UserApplication(
@@ -173,10 +186,10 @@ def test_get_all_deadlines(client: TestClient, get_user_token: str):
         status="Interview",
         action_deadline=datetime.now(timezone.utc)+timedelta(days=2)
     )
-    submission2 = client.post("/api/application", json=jsonable_encoder(application2.model_dump()), headers={
+    submission2 = await client.post("/api/application", json=jsonable_encoder(application2.model_dump()), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
-    result = client.get("/api/all_deadlines",
+    result = await client.get("/api/all_deadlines",
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
     assert result.status_code == status.HTTP_200_OK
