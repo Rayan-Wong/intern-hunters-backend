@@ -3,7 +3,7 @@ import uuid
 
 from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy import select, and_
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from jwt import ExpiredSignatureError, InvalidTokenError
 from fastapi import Depends, status
 from fastapi.exceptions import HTTPException
@@ -24,8 +24,8 @@ NO_REFRESH_TOKEN = "No refresh token"
 INVALID_SESSION_TOKEN = "Invalid session token"
 LOGGED_OUT = "Logged out"
 
-def verify_jwt(authorization: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_session),
+async def verify_jwt(authorization: HTTPAuthorizationCredentials = Depends(security),
+    db: AsyncSession = Depends(get_session),
     user_jwt: UserJWT = Depends(UserJWT)
 ):
     """Verifies if user id in JWT is valid"""
@@ -33,7 +33,8 @@ def verify_jwt(authorization: HTTPAuthorizationCredentials = Depends(security),
         token = authorization.credentials
         user_id = user_jwt.decode_jwt(token)
         stmt = select(User).where(user_id == User.id)
-        user = db.execute(statement=stmt).scalar_one()
+        result = await db.execute(statement=stmt)
+        user = result.scalar_one()
         return user.id
     except NoResultFound:
         raise HTTPException(
@@ -53,9 +54,9 @@ def verify_jwt(authorization: HTTPAuthorizationCredentials = Depends(security),
     except Exception as e:
         raise e
     
-def verify_expired_jwt(
+async def verify_expired_jwt(
     authorization: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_session),
+    db: AsyncSession = Depends(get_session),
     user_jwt: UserJWT = Depends(UserJWT)
 ):
     """Verifies if user id in JWT is valid"""
@@ -63,7 +64,8 @@ def verify_expired_jwt(
         token = authorization.credentials
         user_id = user_jwt.decode_expired_jwt(token)
         stmt = select(User).where(user_id == User.id)
-        user = db.execute(statement=stmt).scalar_one()
+        result = await db.execute(statement=stmt)
+        user = result.scalar_one()
         return user.id
     except NoResultFound:
         raise HTTPException(
@@ -78,31 +80,34 @@ def verify_expired_jwt(
     except Exception as e:
         raise e
 
-def create_session_id(
+async def create_session_id(
         user_id: uuid.UUID,
-        db: Session
+        db: AsyncSession
 ):
     """Creates session id and store it into db"""
     try:
         session_id = uuid.uuid4()
         stmt = select(User).where(user_id == User.id)
-        user = db.execute(statement=stmt).scalar_one()
+        result = await db.execute(statement=stmt)
+        user = result.scalar_one()
         user.session_id = session_id
-        db.commit()
-        db.refresh(user)
+        await db.commit()
+        await db.refresh(user)
         return session_id
     except NoResultFound:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=NO_ACCOUNT
         ) from NoResultFound
     except Exception as e:
+        await db.rollback()
         raise e
 
-def check_session_token(
+async def check_session_token(
         user_id: uuid.UUID,
         refresh_token: str,
-        db: Session
+        db: AsyncSession
 ):
     """Checks session token. If valid, returns user with that session token"""
     try:
@@ -118,7 +123,8 @@ def check_session_token(
                 User.session_id == session_id
             )
         )
-        result = db.execute(stmt).scalar_one()
+        res = await db.execute(stmt)
+        result = res.scalar_one()
         return result
     except NoResultFound:
         raise HTTPException(
@@ -138,10 +144,10 @@ def check_session_token(
     except Exception as e:
         raise e
 
-def use_session_token(
+async def use_session_token(
         user_id: uuid.UUID,
         refresh_token: str,
-        db: Session
+        db: AsyncSession
 ):
     """Uses session token. If valid, creates a new session id, stores into db and returns it"""
     try:
@@ -150,21 +156,21 @@ def use_session_token(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=NO_REFRESH_TOKEN
             )
-        result = check_session_token(user_id, refresh_token, db)
+        result = await check_session_token(user_id, refresh_token, db)
         new_session_id = uuid.uuid4()
         result.session_id = new_session_id
-        db.commit()
-        db.refresh(result)
+        await db.commit()
+        await db.refresh(result)
         return new_session_id
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         raise e
     
-def test_session_token(
+async def test_session_token(
         user_id: uuid.UUID,
         refresh_token: str,
-        db: Session
+        db: AsyncSession
 ):
     """Tests session token. If valid, returns same same session token"""
-    result = check_session_token(user_id, refresh_token, db)
+    result = await check_session_token(user_id, refresh_token, db)
     return result.session_id

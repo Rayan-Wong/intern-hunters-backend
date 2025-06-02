@@ -3,6 +3,7 @@ from app.models.base import Base
 
 from .database import engine
 
-def init_db():
+async def init_db():
     """Creates db connection"""
-    Base.metadata.create_all(engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)

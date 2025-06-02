@@ -3,7 +3,7 @@ from typing import Annotated
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.user_applications_service import UserApplications
 from app.dependencies.security import verify_jwt
@@ -31,15 +31,15 @@ SOMETHING_WRONG = "Something wrong"
     response_model=GetUserApplication,
     responses={**INVALID_APPLICATION_RESPONSE, **BAD_JWT}
 )
-def create_application(
+async def create_application(
     application_details: UserApplicationCreate,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
-    db: Annotated[Session, Depends(get_session)]
+    db: Annotated[AsyncSession, Depends(get_session)]
 ):
     """Creates a user application, then returns the application for frontend to instantly process"""
     try:
         user_application = UserApplications(db)
-        application = user_application.create_application(application_details,
+        application = await user_application.create_application(application_details,
             user_id
         )
         return application
@@ -49,6 +49,7 @@ def create_application(
             detail=INVALID_APPPLICATION
         ) from e
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -59,15 +60,15 @@ def create_application(
     response_model=GetUserApplication,
     responses={**APPLICATION_NOT_FOUND_RESPONSE, **BAD_JWT}
 )
-def get_application(
+async def get_application(
     post_id: int,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
-    db: Annotated[Session, Depends(get_session)]
+    db: Annotated[AsyncSession, Depends(get_session)]
 ):
     """Returns a user application given the post id"""
     try:
         user_application = UserApplications(db)
-        application = user_application.get_application(post_id, user_id)
+        application = await user_application.get_application(post_id, user_id)
         return application
     except NoApplicationFound:
         raise HTTPException(
@@ -85,14 +86,14 @@ def get_application(
     tags=["all_applications"],
     responses=BAD_JWT
 )
-def get_all_applications(
+async def get_all_applications(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
-    db: Annotated[Session, Depends(get_session)]
+    db: Annotated[AsyncSession, Depends(get_session)]
 ):
     """Returns all users' applications given user's id (to create paginagtion)"""
     try:
         user_application = UserApplications(db)
-        applications = user_application.get_all_applications(user_id)
+        applications = await user_application.get_all_applications(user_id)
         return applications
     except Exception as e:
         raise HTTPException(
@@ -105,14 +106,14 @@ def get_all_applications(
     tags=["all_deadlines"],
     responses=BAD_JWT
 )
-def get_all_deadlines(
+async def get_all_deadlines(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
-    db: Annotated[Session, Depends(get_session)]
+    db: Annotated[AsyncSession, Depends(get_session)]
 ):
     """Returns all users' applications with deadlines in ascending order"""
     try:
         user_application = UserApplications(db)
-        applications = user_application.get_all_deadlines(user_id)
+        applications = await user_application.get_all_deadlines(user_id)
         return applications
     except Exception as e:
         raise HTTPException(
@@ -125,15 +126,15 @@ def get_all_deadlines(
     response_model=GetUserApplication,
     responses={**APPLICATION_NOT_FOUND_RESPONSE, **BAD_JWT}
 )
-def modify_application(
+async def modify_application(
     old_application: UserApplicationModify,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
-    db: Annotated[Session, Depends(get_session)]
+    db: Annotated[AsyncSession, Depends(get_session)]
 ):
     """Modifies user application and returns updated version"""
     try:
         user_application = UserApplications(db)
-        new_application = user_application.modify_application(old_application, user_id)
+        new_application = await user_application.modify_application(old_application, user_id)
         return new_application
     except NoApplicationFound:
         raise HTTPException(
@@ -150,15 +151,15 @@ def modify_application(
     tags=["application"],
     responses={**APPLICATION_NOT_FOUND_RESPONSE, **BAD_JWT}
 )
-def delete_application(
+async def delete_application(
     application_id: int,
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
-    db: Annotated[Session, Depends(get_session)]
+    db: Annotated[AsyncSession, Depends(get_session)]
 ):
     """Deletes user application given post id"""
     try:
         user_application = UserApplications(db)
-        user_application.delete_application(application_id, user_id)
+        await user_application.delete_application(application_id, user_id)
         return Response(status_code=status.HTTP_202_ACCEPTED)
     except NoApplicationFound:
         raise HTTPException(
