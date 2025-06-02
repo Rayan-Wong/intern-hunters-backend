@@ -26,21 +26,24 @@ def load_skills():
 
 async def get_skills():
     """Retrieve skills from user's resume"""
-    load_nlp()
-    load_skills()
-    pdf_path = os.path.join(current_dir, "test_resume.pdf")
-    doc = pymupdf.open(pdf_path)
-    text = ""
-    result = set()
-    for page in doc:
-        text += page.get_text()
-    tokens = nlp(text.lower())
-    for token in tokens:
-        if token.text in skills_set:
-            result.add(token.text)
-    for chunk in tokens.noun_chunks:
-        if chunk.text in skills_set:
-            result.add(chunk.text)
-    return result
+    try:
+        load_nlp()
+        load_skills()
+        pdf_path = os.path.join(current_dir, "test_resume.pdf")
+        doc = pymupdf.open(pdf_path)
+        text = ""
+        result = set()
+        for page in doc:
+            text += page.get_text()
+        tokens = nlp(text.lower())
+        for token in tokens:
+            if token.text in skills_set:
+                result.add(token.text)
+        for chunk in tokens.noun_chunks:
+            if chunk.text in skills_set:
+                result.add(chunk.text)
+        return result
+    except:
+        pass
 
 print(asyncio.run(get_skills()))

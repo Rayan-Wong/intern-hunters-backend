@@ -1,10 +1,10 @@
 """Imports relevant modules needed to test and override db dependency"""
 import os
 import pytest
+import pytest_asyncio
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from httpx import ASGITransport, AsyncClient
 
 from app.db.database import get_session
 from app.main import app
@@ -34,31 +34,33 @@ def good_user():
         encrypted_password="password"
     )
 
-@pytest.fixture(scope="module")
-def create_mock_db():
+@pytest_asyncio.fixture(scope="module")
+async def create_mock_db():
     """Fixture override on db dependency"""
-    engine = create_engine(
-    url="sqlite:///./test.db",
-    echo=True,
-    pool_pre_ping=True,
-    future=True
+    engine = create_async_engine(
+        url="sqlite+aiosqlite:///./test.db",
+        echo=True,
+        pool_pre_ping=True,
+        future=True
     )
-    Base.metadata.create_all(bind=engine)
-    session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    db = session_local()
     try:
-        yield db
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        session_local = async_sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        async with session_local() as db:
+            yield db
     finally:
-        db.close()
-        engine.dispose()
+        await engine.dispose()
         if os.path.exists("test.db"):
             os.remove("test.db")
 
-@pytest.fixture(scope="module")
-def client(create_mock_db):
+@pytest_asyncio.fixture(scope="module")
+async def client(create_mock_db):
     """Override db dependency"""
-    def override_session():
+    async def override_session():
         """Wraps fixture in a non-fixture function to allow fixture to be used as dependency injection"""
-        yield create_mock_db
+        async with create_mock_db as db:
+            yield db
     app.dependency_overrides[get_session] = override_session
-    return TestClient(app)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        yield client

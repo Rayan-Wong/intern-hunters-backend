@@ -4,6 +4,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.auth_service import UserAuth
 from app.dependencies.security import verify_jwt, verify_expired_jwt, create_session_id, use_session_token, test_session_token
@@ -34,9 +35,9 @@ BAD_REFRESH_TOKEN = "Bad refresh token"
     response_model=UserToken,
     responses={**EMAIL_ALREADY_EXISTS_RESPONSE}
 )
-def register_user(
+async def register_user(
     user_in: UserCreate,
-    db: Annotated[Session, Depends(get_session)],
+    db: Annotated[AsyncSession, Depends(get_session)],
     user_jwt: Annotated[UserJWT, Depends(UserJWT)],
     refresh_token: Annotated[UserRefreshToken, Depends(UserRefreshToken)],
     response: Response
@@ -45,9 +46,9 @@ def register_user(
     (and in the future session token)"""
     try:
         auth = UserAuth(db)
-        user_id = auth.register(user_in)
+        user_id = await auth.register(user_in)
         user_token = user_jwt.create_jwt(user_id)
-        session_id = create_session_id(user_id, db)
+        session_id = await create_session_id(user_id, db)
         response.set_cookie(
             key="refresh_token",
             value=refresh_token.create_session_token(session_id),
@@ -63,8 +64,7 @@ def register_user(
         ) from DuplicateEmailError
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=SOMETHING_WRONG
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
 
 @router.post("/login",
@@ -72,9 +72,9 @@ def register_user(
     response_model=UserLoginReturns,
     responses={**NO_ACCOUNT_RESPONSE, **PASSWORD_INCORRECT_RESPONSE}
 )
-def login_user(
+async def login_user(
     user_in: UserLogin,
-    db: Annotated[Session, Depends(get_session)],
+    db: Annotated[AsyncSession, Depends(get_session)],
     user_jwt: Annotated[UserJWT, Depends(UserJWT)],
     refresh_token: Annotated[UserRefreshToken, Depends(UserRefreshToken)],
     response: Response
@@ -83,9 +83,9 @@ def login_user(
     (and in the future session token)"""
     try:
         auth = UserAuth(db)
-        user_creds = auth.login(user_in)
+        user_creds = await auth.login(user_in)
         user_token = user_jwt.create_jwt(user_creds.id)
-        session_id = create_session_id(user_creds.id, db)
+        session_id = await create_session_id(user_creds.id, db)
         response.set_cookie(
             key="refresh_token",
             value=refresh_token.create_session_token(session_id),
@@ -119,15 +119,15 @@ def login_user(
         **BAD_REFRESH_TOKEN_RESPONSE
     }
 )
-def refresh_token(
+async def refresh_token(
     user_id: Annotated[uuid.UUID, Depends(verify_expired_jwt)],
     user_jwt: Annotated[UserJWT, Depends(UserJWT)],
     response: Response,
-    db: Annotated[Session, Depends(get_session)],
+    db: Annotated[AsyncSession, Depends(get_session)],
     refresh_token: str = Cookie(description="Refresh Token"),
 ):
     """Refreshes user jwt and refresh token, given refresh token"""
-    session_id = use_session_token(user_id, refresh_token, db)
+    session_id = await use_session_token(user_id, refresh_token, db)
     user_token = user_jwt.create_jwt(user_id)
     response.set_cookie(
         key="refresh_token",
@@ -142,14 +142,14 @@ def refresh_token(
     tags=["logout_user"],
     responses={**NO_ACCOUNT_RESPONSE, **BAD_JWT}
 )
-def logout(
+async def logout(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
-    db: Annotated[Session, Depends(get_session)],
+    db: Annotated[AsyncSession, Depends(get_session)],
     ):
     """Logs user out"""
     try:
         user_auth = UserAuth(db)
-        session_id = user_auth.log_out(user_id)
+        session_id = await user_auth.log_out(user_id)
         return Response(status_code=status.HTTP_200_OK)
     except NoAccountError:
         raise HTTPException(
@@ -163,14 +163,14 @@ def logout(
         ) from e
 
 @router.post("/test_login")
-def verify_token(user_id: Annotated[uuid.UUID, Depends(verify_jwt)]):
+async def verify_token(user_id: Annotated[uuid.UUID, Depends(verify_jwt)]):
     """Test function to check JWTs generated are valid"""
     return user_id
 
 @router.post("/test_session_token")
-def verify_session_token(
+async def verify_session_token(
     user_id: Annotated[uuid.UUID, Depends(verify_expired_jwt)],
-    db: Annotated[Session, Depends(get_session)],
+    db: Annotated[AsyncSession, Depends(get_session)],
     refresh_token: str = Cookie(),
 ):
     """Test function to check session id is valid"""
@@ -179,4 +179,4 @@ def verify_session_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=BAD_REFRESH_TOKEN
         )
-    return test_session_token(user_id, refresh_token, db)
+    return await test_session_token(user_id, refresh_token, db)
