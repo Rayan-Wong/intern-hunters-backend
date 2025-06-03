@@ -125,6 +125,21 @@ async def test_modify_application(client: AsyncClient, get_user_token: str):
     assert result.json()["status"] == "Interview"
 
 @pytest.mark.asyncio
+async def test_modify_application_badly(client: AsyncClient, get_user_token: str):
+    """Tests if a user can modify the correct application"""
+    application = UserApplicationModify(
+        company_name="Skibidi",
+        role_name="Toilet",
+        location="Tung",
+        status="Phonk",
+        id=1
+    )
+    result = await client.put("/api/application", json=application.model_dump(), headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.asyncio
 async def test_modify_wrong_application(client: AsyncClient, get_user_token: str):
     """Tests if user fails to modify wrong application"""
     application = UserApplicationModify(

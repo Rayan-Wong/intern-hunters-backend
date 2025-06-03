@@ -28,7 +28,7 @@ class UserApplications:
         for key, value in app_input.model_dump().items():
             setattr(output, key, value)
         return output
-    
+
     async def create_application(self, application: UserApplicationCreate, id_user: uuid.UUID):
         """Creates user application"""
         user_application = UserApplication(
@@ -52,7 +52,7 @@ class UserApplications:
         except Exception as e:
             await self.__db.rollback()
             raise e
-        
+
     async def get_application(self, application_id: int, user_id: uuid.UUID):
         """Gets a user's application given application id"""
         try:
@@ -70,7 +70,7 @@ class UserApplications:
         except Exception as e:
             await self.__db.rollback()
             raise e
-        
+
     async def get_all_applications(self, user_id: uuid.UUID):
         """Gets all user's applications"""
         try:
@@ -81,7 +81,7 @@ class UserApplications:
         except Exception as e:
             await self.__db.rollback()
             raise e
-        
+
     async def get_all_deadlines(self, user_id: uuid.UUID):
         """Gets all user's deadlines, in ascending order"""
         try:
@@ -97,7 +97,7 @@ class UserApplications:
         except Exception as e:
             await self.__db.rollback()
             raise e
-        
+
     async def modify_application(self,
         incoming_application: UserApplicationModify,
         user_id: uuid.UUID
@@ -123,10 +123,14 @@ class UserApplications:
             # see above, could be possible uuid is invalid
             await self.__db.rollback()
             raise NoApplicationFound from NoResultFound
+        except StatementError as e:
+        # means given status input is not in enum
+            await self.__db.rollback()
+            raise InvalidApplication from e
         except Exception as e:
             await self.__db.rollback()
             raise e
-        
+
     async def delete_application(self, application_id: int, user_id: uuid.UUID):
         """Gets a user's application given application id"""
         try:

@@ -1,5 +1,5 @@
 """List of metadata tags and error responses for /docs"""
-tags_metadata = [
+TAGS_METADATA = [
     {
         "name": "register_user",
         "description": "Register a new user and returns JWT and access token."
@@ -30,6 +30,13 @@ tags_metadata = [
     }
 ]
 
+DESCRIPTION = """
+Note that for all protected routes (the ones with the padlock), 
+the route may throw status code 401 and 403 for invalid JWT (and so the user should re-login),
+or status code 407 for expired JWT, which means frontend should do silent token refresh at /api/token
+The exception is /api/token which accepts expired JWTs
+"""
+
 NO_ACCOUNT_RESPONSE = {
     401: {
         "description": "No account associated with the given JWT",
@@ -53,7 +60,7 @@ EXPIRED_JWT_RESPONSE = {
 }
 
 INVALID_JWT_RESPONSE = {
-    400: {
+    403: {
         "description": "JWT is malformed or otherwise invalid",
         "content": {
             "application/json": {
