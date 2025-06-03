@@ -3,11 +3,16 @@ from typing import Annotated
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
-from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.auth_service import UserAuth
-from app.dependencies.security import verify_jwt, verify_expired_jwt, create_session_id, use_session_token, test_session_token
+from app.dependencies.security import (
+    verify_jwt,
+    verify_expired_jwt,
+    create_session_id,
+    use_session_token,
+    test_session_token
+)
 from app.core.jwt import UserJWT
 from app.core.refresh_token import UserRefreshToken
 from app.schemas.user import UserCreate, UserLogin, UserToken, UserLoginReturns

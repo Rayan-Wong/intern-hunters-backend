@@ -13,6 +13,7 @@ class UserLogin(BaseModel):
     password: str
 
 class UserLoginReturns(BaseModel):
+    """Schema of what is returned when user logs in"""
     access_token: str
     token_type: str
     name: str

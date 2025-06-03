@@ -48,7 +48,7 @@ async def verify_jwt(authorization: HTTPAuthorizationCredentials = Depends(secur
         ) from ExpiredSignatureError
     except InvalidTokenError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail=INVALID_JWT
         ) from InvalidTokenError
     except Exception as e:
@@ -74,7 +74,7 @@ async def verify_expired_jwt(
         ) from NoResultFound
     except InvalidTokenError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail=INVALID_JWT
         ) from InvalidTokenError
     except Exception as e:
