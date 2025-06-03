@@ -6,14 +6,19 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.init_db import init_db
 from .api import routes_auth, routes_applications
-from .openapi import tags_metadata
+from .openapi import TAGS_METADATA, DESCRIPTION
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Initialises db"""
     await init_db()
     yield
 
-app = FastAPI(openapi_tags=tags_metadata, lifespan=lifespan)
+app = FastAPI(
+    openapi_tags=TAGS_METADATA,
+    lifespan=lifespan,
+    description=DESCRIPTION
+)
 
 origins = ["http://localhost:5173"]
 app.add_middleware(

@@ -39,6 +39,11 @@ class UserJWT:
 
     def decode_expired_jwt(self, incoming_jwt: str):
         """Decodes expired JWT and returns unverified user id"""
-        payload = jwt.decode(incoming_jwt, self.__secret_key, algorithms=self.__algorithm, options={"verify_exp": False})
+        payload = jwt.decode(
+            incoming_jwt,
+            self.__secret_key,
+            algorithms=self.__algorithm,
+            options={"verify_exp": False}
+        )
         user_details = JWTPayload(**payload)
         return user_details.sub

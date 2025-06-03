@@ -16,11 +16,12 @@ class RefreshTokenPayload(BaseModel):
     iat: int
 
 class UserRefreshToken:
+    """Handles creation and decoding of session tokens"""
     def __init__(self):
         self.__secret_key = settings.refresh_token_secret_key
         self.__algorithm = "HS256"
         self.__access_token_expire_days = 7
-        
+
     def create_session_token(self, session_id: uuid.UUID):
         """Creates session token using session id"""
         to_encode = {"sub": str(session_id)}
@@ -29,7 +30,7 @@ class UserRefreshToken:
         to_encode.update({"exp": expire})
         encoded_session_token = jwt.encode(to_encode, self.__secret_key, algorithm=self.__algorithm)
         return encoded_session_token
-    
+
     def decode_refresh_token(self, incoming_refresh_token: str):
         """Decodes session token to get id"""
         payload = jwt.decode(incoming_refresh_token, self.__secret_key, algorithms=self.__algorithm)

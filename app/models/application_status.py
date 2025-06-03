@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .base import Base
 
 class ApplicationStatusEnum(str, enum.Enum):
+    """Enum for possible application status"""
     APPLIED = "Applied"
     INTERVIEW = "Interview"
     PENDING_RESULT = "Pending Result"
@@ -24,7 +25,8 @@ class UserApplication(Base):
     role_name: Mapped[str]
     company_name: Mapped[str]
     location: Mapped[str]
-    # not using db native ENUM to ensure portability over different dbs, create_constraint does the same thing
+    # not using db native ENUM to ensure portability over different dbs,
+    # create_constraint does the same thing
     status: Mapped[ApplicationStatusEnum] = mapped_column(SQLAEnum(
         ApplicationStatusEnum,
         name="application_status_enum",
