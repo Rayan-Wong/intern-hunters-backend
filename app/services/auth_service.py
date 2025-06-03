@@ -16,6 +16,7 @@ from app.exceptions.auth_exceptions import DuplicateEmailError, WrongPasswordErr
 from app.schemas.user import UserCreate, UserLogin
 
 class UserIn(BaseModel):
+    """Schema of what the db returns when a user logs in"""
     id: uuid.UUID
     name: str
 
@@ -44,7 +45,7 @@ class UserAuth:
         except Exception as e:
             await self.__db.rollback()
             raise e
-        
+
     async def login(self, user_in: UserLogin):
         """Log user in and returns their user id"""
         try:
@@ -63,7 +64,7 @@ class UserAuth:
         except Exception as e:
             await self.__db.rollback()
             raise e
-        
+
     async def log_out(self, user_id: UserLogin):
         """Logs user out and returns None (idk)"""
         try:

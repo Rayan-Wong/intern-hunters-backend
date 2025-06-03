@@ -29,7 +29,7 @@ SOMETHING_WRONG = "Something wrong"
 @router.post("/application",
     tags=["application"],
     response_model=GetUserApplication,
-    responses={**INVALID_APPLICATION_RESPONSE, **BAD_JWT}
+    responses={**BAD_JWT, **INVALID_APPLICATION_RESPONSE}
 )
 async def create_application(
     application_details: UserApplicationCreate,
@@ -43,13 +43,12 @@ async def create_application(
             user_id
         )
         return application
-    except InvalidApplication as e:
+    except InvalidApplication:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=INVALID_APPPLICATION
-        ) from e
+        ) from InvalidApplication
     except Exception as e:
-        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -100,7 +99,7 @@ async def get_all_applications(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
         ) from e
-    
+
 @router.get("/all_deadlines",
     response_model=list[GetUserApplication],
     tags=["all_deadlines"],
@@ -136,6 +135,11 @@ async def modify_application(
         user_application = UserApplications(db)
         new_application = await user_application.modify_application(old_application, user_id)
         return new_application
+    except InvalidApplication:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=INVALID_APPPLICATION
+        ) from InvalidApplication
     except NoApplicationFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
