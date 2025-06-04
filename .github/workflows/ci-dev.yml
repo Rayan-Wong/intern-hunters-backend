@@ -17,6 +17,7 @@ jobs:
       JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       REFRESH_TOKEN_SECRET_KEY: ${{ secrets.REFRESH_TOKEN_SECRET_KEY }}
+      TEST_RESUME: ${{ secrets.TEST_RESUME }}
     steps:
     - name: Checkout dev branch
       uses: actions/checkout@v4
@@ -31,6 +32,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Download test resume
+      run: |
+        curl -L "$TEST_RESUME" -o ./tests/test_resume.pdf
     - name: Lint with flake8
       run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide

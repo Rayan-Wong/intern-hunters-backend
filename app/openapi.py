@@ -170,3 +170,14 @@ APPLICATION_NOT_FOUND_RESPONSE = {
         }
     }
 }
+
+SPACY_DEAD = {
+    503: {
+        "description": "spaCy is down",
+        "content": {
+            "application/json": {
+                "example": {"detail": "spaCy down"}
+            }
+        }
+    }
+}
