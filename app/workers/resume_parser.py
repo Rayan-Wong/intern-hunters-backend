@@ -1,9 +1,11 @@
 import json
 import os
-import asyncio
+from typing import BinaryIO
 
 import spacy
 import pymupdf
+
+from app.exceptions.internship_listings_exceptions import spaCyDown
 
 nlp = None
 skills_set = set()
@@ -24,13 +26,12 @@ def load_skills():
             for dict in dict_list:
                 skills_set.add(dict["name"].lower())
 
-async def get_skills():
+async def get_skills(file: BinaryIO):
     """Retrieve skills from user's resume"""
     try:
         load_nlp()
         load_skills()
-        pdf_path = os.path.join(current_dir, "test_resume.pdf")
-        doc = pymupdf.open(pdf_path)
+        doc = pymupdf.open(stream=file, filetype="pdf")
         text = ""
         result = set()
         for page in doc:
@@ -42,8 +43,7 @@ async def get_skills():
         for chunk in tokens.noun_chunks:
             if chunk.text in skills_set:
                 result.add(chunk.text)
-        return result
-    except:
-        pass
-
-print(asyncio.run(get_skills()))
+        return list(result)
+    except Exception as e:
+        print(e)
+        raise spaCyDown from e
