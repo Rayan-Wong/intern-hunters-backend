@@ -6,10 +6,9 @@ from fastapi import status
 from httpx import AsyncClient
 from fastapi.encoders import jsonable_encoder
 import pytest
-import pytest_asyncio
 from pydantic import BaseModel
 
-from tests.conftest import UserTest, client, good_user
+from tests.conftest import UserTest, client, get_user_token
 
 class UserApplication(BaseModel):
     """User Application constructor for tests"""
@@ -23,23 +22,6 @@ class UserApplication(BaseModel):
 class UserApplicationModify(UserApplication):
     """"Constructor for user application modify requests"""
     id: int
-
-@pytest_asyncio.fixture
-async def get_user_token(client: AsyncClient, good_user: UserTest):
-    """generates good user token to use"""
-    await client.post("/api/register",
-        json={"name": good_user.name,
-            "email": good_user.email,
-            "password": good_user.encrypted_password
-        }
-    )
-    res1 = await client.post("/api/login",
-        json={"email": good_user.email,
-            "password": good_user.encrypted_password
-        }
-    )
-    token = res1.json()["access_token"]
-    return token
 
 @pytest.mark.asyncio
 async def test_create_application(client: AsyncClient, get_user_token: str):
