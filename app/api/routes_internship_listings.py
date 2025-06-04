@@ -50,7 +50,6 @@ async def upload_skills(
             detail=SPACY_DOWN
         ) from spaCyDown
     except Exception as e:
-        print(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
