@@ -64,3 +64,21 @@ async def client(create_mock_db):
     app.dependency_overrides[get_session] = override_session
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
+
+
+@pytest_asyncio.fixture
+async def get_user_token(client: AsyncClient, good_user: UserTest):
+    """generates good user token to use"""
+    await client.post("/api/register",
+        json={"name": good_user.name,
+            "email": good_user.email,
+            "password": good_user.encrypted_password
+        }
+    )
+    res1 = await client.post("/api/login",
+        json={"email": good_user.email,
+            "password": good_user.encrypted_password
+        }
+    )
+    token = res1.json()["access_token"]
+    return token
