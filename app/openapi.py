@@ -27,6 +27,14 @@ TAGS_METADATA = [
     {
         "name": "all_deadlines",
         "description": "Retrieve all applications sorted by their upcoming deadlines."
+    },
+    {
+        "name": "upload_skills",
+        "description": "Retrieve user's skills and internship preferences from their resume."
+    },
+    {
+        "name": "internship_listings",
+        "description": "Fetch 20 internship listings tailored to user. The listing description is sent as a HTML set. Note that date_posted may be null"
     }
 ]
 
@@ -177,6 +185,28 @@ SPACY_DEAD = {
         "content": {
             "application/json": {
                 "example": {"detail": "spaCy down"}
+            }
+        }
+    }
+}
+
+GEMINI_DEAD = {
+    502: {
+        "description": "Gemini is down",
+        "content": {
+            "application/json": {
+                "example": {"detail": "Gemini down"}
+            }
+        }
+    }
+}
+
+SCRAPER_DEAD = {
+    503: {
+        "description": "Job Scraper is down",
+        "content": {
+            "application/json": {
+                "example": {"detail": "Job Scraper down"}
             }
         }
     }
