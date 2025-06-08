@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     database_url: str
     jwt_secret_key: str
     refresh_token_secret_key: str
+    gemini_api_key: str
 
 @lru_cache
 def get_settings():

@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.init_db import init_db
+from app.workers.resume_parser import load_skills, load_nlp
 from .api import routes_auth, routes_applications, routes_internship_listings
 from .openapi import TAGS_METADATA, DESCRIPTION
 
@@ -13,6 +14,9 @@ async def lifespan(app: FastAPI):
     """Initialises db"""
     await init_db()
     yield
+
+load_skills()
+load_nlp()
 
 app = FastAPI(
     openapi_tags=TAGS_METADATA,
