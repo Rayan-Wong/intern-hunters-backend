@@ -29,8 +29,6 @@ def load_skills():
 async def get_skills(file: BinaryIO):
     """Retrieve skills from user's resume"""
     try:
-        load_nlp()
-        load_skills()
         doc = pymupdf.open(stream=file, filetype="pdf")
         text = ""
         result = set()
@@ -45,5 +43,4 @@ async def get_skills(file: BinaryIO):
                 result.add(chunk.text)
         return list(result)
     except Exception as e:
-        print(e)
         raise spaCyDown from e
