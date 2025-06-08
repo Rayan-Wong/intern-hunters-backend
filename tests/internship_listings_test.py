@@ -51,3 +51,12 @@ async def test_bad_resume(client: AsyncClient, get_user_token: str, construct_ba
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.asyncio
+async def test_listings(client: AsyncClient, get_user_token: str):
+    """Tests if the path rejects a bad resume"""
+    result = await client.get("/api/internship_listings", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json() != []
