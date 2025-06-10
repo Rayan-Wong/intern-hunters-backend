@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     refresh_token_secret_key: str
     gemini_api_key: str
+    aws_access_key_id: str
+    aws_secret_access_key: str
+    r2_bucket_url: str
+    r2_bucket_name: str
+    r2_region: str
 
 @lru_cache
 def get_settings():

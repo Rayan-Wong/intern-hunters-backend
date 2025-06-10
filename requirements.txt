@@ -102,6 +102,7 @@ pyphen==0.17.2
 pytest==8.3.5
 pytest-asyncio==1.0.0
 pytest-cov==6.1.1
+pytest-mock==3.14.1
 pytest-xdist==3.6.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
