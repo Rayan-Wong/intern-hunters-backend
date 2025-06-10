@@ -7,3 +7,6 @@ class GeminiDown(Exception):
 
 class ScraperDown(Exception):
     """Exception Wrapper for Scraper worker down"""
+
+class R2Down(Exception):
+    """Excepption Wrapper for R2 worker down"""
