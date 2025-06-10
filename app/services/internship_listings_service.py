@@ -3,12 +3,13 @@ import uuid
 import io
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as upsert
 from sqlalchemy.exc import NoResultFound
 from anyio import to_thread
 
 from app.models.user_skills import UserSkill
+from app.models.user import User
 from app.workers.resume_parser import get_skills
 from app.workers.job_scraper import sync_scrape_jobs
 from app.workers.gemini import get_gemini_client
@@ -21,20 +22,20 @@ async def upload_user_skills(db: AsyncSession, user_id: uuid.UUID, file: io.Byte
         user_preference = await get_gemini_client().get_preference(file.getvalue())
         # either create new row with user_id and skills if it doesn't exist,
         # or update it
-        stmt = upsert(UserSkill).values({
+        stmt1 = upsert(UserSkill).values({
             "user_id": user_id,
             "skills": user_skills,
             "preference": user_preference,
-            "has_uploaded": True
         }).on_conflict_do_update(
             index_elements=[UserSkill.user_id],
             set_=dict(
                 skills=user_skills,
                 preference=user_preference,
-                has_uploaded=True
             )
         )
-        await db.execute(stmt)
+        await db.execute(stmt1)
+        stmt2 = update(User).where(User.id == user_id).values(has_uploaded=True)
+        await db.execute(stmt2)
         await db.commit()
         return user_skills
     except spaCyDown as e:
