@@ -1,4 +1,4 @@
-role_list = [
+ROLE_LIST = [
     "Software Engineering Intern",
     "Backend Intern",
     "Frontend Intern",

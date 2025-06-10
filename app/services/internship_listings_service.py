@@ -11,25 +11,27 @@ from anyio import to_thread
 from app.models.user_skills import UserSkill
 from app.workers.resume_parser import get_skills
 from app.workers.job_scraper import sync_scrape_jobs
-from app.workers.gemini import get_preference
+from app.workers.gemini import get_gemini_client
 from app.exceptions.internship_listings_exceptions import spaCyDown, GeminiDown, ScraperDown
 
 async def upload_user_skills(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
     """Gets user skills with pdf from spaCy worker, then updates it to db and returns skills"""
     try:
         user_skills = await get_skills(file)
-        user_preference = await get_preference(file.getvalue())
+        user_preference = await get_gemini_client().get_preference(file.getvalue())
         # either create new row with user_id and skills if it doesn't exist,
         # or update it
         stmt = upsert(UserSkill).values({
             "user_id": user_id,
             "skills": user_skills,
-            "preference": user_preference
+            "preference": user_preference,
+            "has_uploaded": True
         }).on_conflict_do_update(
             index_elements=[UserSkill.user_id],
             set_=dict(
                 skills=user_skills,
-                preference=user_preference
+                preference=user_preference,
+                has_uploaded=True
             )
         )
         await db.execute(stmt)
