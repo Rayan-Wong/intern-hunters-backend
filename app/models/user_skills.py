@@ -2,7 +2,7 @@
 import uuid
 from typing import List
 
-from sqlalchemy import Uuid, JSON, ForeignKey, Integer
+from sqlalchemy import Uuid, JSON, ForeignKey, Integer, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -14,3 +14,4 @@ class UserSkill(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid(), ForeignKey("user.id"), unique=True)
     skills: Mapped[List[str]] = mapped_column(JSON(), nullable=True)
     preference: Mapped[str] = mapped_column(nullable=True)
+    has_uploaded: Mapped[bool] = mapped_column(Boolean(), default=False)
