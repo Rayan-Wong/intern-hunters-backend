@@ -1,6 +1,6 @@
 import json
 import os
-from typing import BinaryIO
+import io
 
 import spacy
 import pymupdf
@@ -26,7 +26,7 @@ def load_skills():
             for dict in dict_list:
                 skills_set.add(dict["name"].lower())
 
-async def get_skills(file: BinaryIO):
+async def get_skills(file: io.BytesIO):
     """Retrieve skills from user's resume"""
     try:
         doc = pymupdf.open(stream=file, filetype="pdf")
