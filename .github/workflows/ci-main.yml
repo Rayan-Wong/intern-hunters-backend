@@ -22,6 +22,7 @@ jobs:
       REFRESH_TOKEN_SECRET_KEY: ${{ secrets.REFRESH_TOKEN_SECRET_KEY }}
       TEST_RESUME: ${{ secrets.TEST_RESUME }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      SYNC_DATABASE_URL: ${{ secrets.SYNC_DATABASE_URL }}
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.12
