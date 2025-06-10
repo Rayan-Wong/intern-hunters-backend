@@ -14,28 +14,29 @@ from app.db.database import get_session
 from app.exceptions.internship_listings_exceptions import spaCyDown, GeminiDown, ScraperDown
 from app.openapi import (
     BAD_JWT,
-    SPACY_DEAD,
-    GEMINI_DEAD,
-    SCRAPER_DEAD
+    SERVICE_DEAD
 )
 
 NOT_A_PDF = "Not a pdf"
 SOMETHING_WRONG = "Something wrong"
 SPACY_DOWN = "spaCy down"
+GEMINI_DOWN = "Gemini down"
+BOTO3_DOWN = "boto3 down"
+SCRAPER_DEAD = "Internship scraper down"
 
 router = APIRouter(prefix="/api")
 
-@router.post("/skills",
-    tags=["upload_skills"],
+@router.post("/upload_resume",
+    tags=["upload_resume"],
     response_model=list[str],
-    responses={**BAD_JWT, **SPACY_DEAD, **GEMINI_DEAD}
+    responses={**BAD_JWT, **SERVICE_DEAD}
 )
 async def upload_skills(
     db: Annotated[AsyncSession, Depends(get_session)],
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
     file: UploadFile
 ):
-    """Adds/updates users' skills as a list given their resume and returns it"""
+    """Adds/updates users' skills and preferences as a list given their resume and returns status 200"""
     header = await file.read(261)
     kind = filetype.guess(header)
     if kind is None or kind.mime != "application/pdf":
@@ -49,7 +50,7 @@ async def upload_skills(
     payload = io.BytesIO(file_bytes)
     try:
         user_skills = await upload_user_skills(db, user_id, payload)
-        return user_skills
+        return Response(status_code=status.HTTP_200_OK)
     except spaCyDown:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -57,8 +58,8 @@ async def upload_skills(
         ) from spaCyDown
     except GeminiDown:
         raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail= GEMINI_DEAD
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=GEMINI_DOWN
         ) from spaCyDown
     except Exception as e:
         raise HTTPException(
@@ -67,7 +68,7 @@ async def upload_skills(
         ) from e
 
 @router.get("/internship_listings",
-    responses={**BAD_JWT, **SCRAPER_DEAD},
+    responses={**BAD_JWT, **SERVICE_DEAD},
     response_model=list[InternshipListing],
     tags=["internship_listings"]
 )

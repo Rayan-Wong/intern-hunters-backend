@@ -29,7 +29,7 @@ TAGS_METADATA = [
         "description": "Retrieve all applications sorted by their upcoming deadlines."
     },
     {
-        "name": "upload_skills",
+        "name": "upload_resume",
         "description": "Retrieve user's skills and internship preferences from their resume."
     },
     {
@@ -179,34 +179,12 @@ APPLICATION_NOT_FOUND_RESPONSE = {
     }
 }
 
-SPACY_DEAD = {
+SERVICE_DEAD = {
     503: {
-        "description": "spaCy is down",
+        "description": "A third party service (Gemini, spaCy etc) is down",
         "content": {
             "application/json": {
-                "example": {"detail": "spaCy down"}
-            }
-        }
-    }
-}
-
-GEMINI_DEAD = {
-    502: {
-        "description": "Gemini is down",
-        "content": {
-            "application/json": {
-                "example": {"detail": "Gemini down"}
-            }
-        }
-    }
-}
-
-SCRAPER_DEAD = {
-    503: {
-        "description": "Job Scraper is down",
-        "content": {
-            "application/json": {
-                "example": {"detail": "Job Scraper down"}
+                "example": {"detail": "Third party worker down"}
             }
         }
     }

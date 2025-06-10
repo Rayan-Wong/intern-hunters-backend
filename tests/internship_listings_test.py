@@ -37,24 +37,23 @@ def construct_bad_file_args(get_resume: TextIO):
 
 @pytest.mark.asyncio
 async def test_get_skills(client: AsyncClient, get_user_token: str, construct_file_args: dict[str, tuple[str, TextIO, str]]):
-    """Tests if a user's skills is successfully created from a resume"""
-    result = await client.post("/api/skills", files=construct_file_args, headers={
+    """Tests if a user's skills and preferences is successfully created from a resume"""
+    result = await client.post("/api/upload_resume", files=construct_file_args, headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
-    assert result.json() != []
 
 @pytest.mark.asyncio
 async def test_bad_resume(client: AsyncClient, get_user_token: str, construct_bad_file_args: dict[str, tuple[str, TextIO, str]]):
     """Tests if the path rejects a bad resume"""
-    result = await client.post("/api/skills", files=construct_bad_file_args, headers={
+    result = await client.post("/api/upload_resume", files=construct_bad_file_args, headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_400_BAD_REQUEST
 
 @pytest.mark.asyncio
 async def test_listings(client: AsyncClient, get_user_token: str):
-    """Tests if the path rejects a bad resume"""
+    """Tests if user with skills can get internship listings"""
     result = await client.get("/api/internship_listings", headers={
         "Authorization": f"Bearer {get_user_token}"
     })
