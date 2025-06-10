@@ -8,10 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import filetype
 
 from app.schemas.internship_listings import InternshipListing
-from app.services.internship_listings_service import upload_user_skills, get_listings
+from app.services.internship_listings_service import upload_resume, get_listings
 from app.dependencies.security import verify_jwt
 from app.db.database import get_session
-from app.exceptions.internship_listings_exceptions import spaCyDown, GeminiDown, ScraperDown
+from app.exceptions.internship_listings_exceptions import spaCyDown, GeminiDown, ScraperDown, R2Down
 from app.openapi import (
     BAD_JWT,
     SERVICE_DEAD
@@ -21,7 +21,7 @@ NOT_A_PDF = "Not a pdf"
 SOMETHING_WRONG = "Something wrong"
 SPACY_DOWN = "spaCy down"
 GEMINI_DOWN = "Gemini down"
-BOTO3_DOWN = "boto3 down"
+R2_DOWN = "R2 down"
 SCRAPER_DEAD = "Internship scraper down"
 
 router = APIRouter(prefix="/api")
@@ -49,7 +49,7 @@ async def upload_skills(
     file_bytes = await file.read()
     payload = io.BytesIO(file_bytes)
     try:
-        user_skills = await upload_user_skills(db, user_id, payload)
+        await upload_resume(db, user_id, payload)
         return Response(status_code=status.HTTP_200_OK)
     except spaCyDown:
         raise HTTPException(
@@ -61,6 +61,11 @@ async def upload_skills(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=GEMINI_DOWN
         ) from spaCyDown
+    except R2Down:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=R2_DOWN
+        ) from R2Down
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
