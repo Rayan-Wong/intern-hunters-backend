@@ -1,7 +1,7 @@
 """Modules for SQLAlchemy dependency and storing of user ids"""
 import uuid
 
-from sqlalchemy import Uuid
+from sqlalchemy import Uuid, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -14,3 +14,4 @@ class User(Base):
     email: Mapped[str] = mapped_column(unique=True)
     encrypted_password: Mapped[str]
     session_id: Mapped[uuid.UUID] = mapped_column(Uuid(), nullable=True, unique=True)
+    has_uploaded: Mapped[bool] = mapped_column(Boolean(), default=False)
