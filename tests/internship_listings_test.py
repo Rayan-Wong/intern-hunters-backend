@@ -44,7 +44,7 @@ async def mock_boto3():
     return mock_boto3
 
 @pytest.mark.asyncio
-@patch('app.services.internship_listings_service.R2')
+@patch('app.services.internship_listings_service.R2') # todo: not need this by setting up local s3
 async def test_get_skills(mock_r2, client: AsyncClient, get_user_token: str, construct_file_args: dict[str, tuple[str, TextIO, str]], mock_boto3):
     """Tests if a user's skills and preferences is successfully created from a resume"""
     mock_r2.return_value = mock_boto3
