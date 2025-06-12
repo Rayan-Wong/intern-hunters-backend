@@ -40,10 +40,10 @@ async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
     await db.commit()
     return user_skills
 
-async def get_listings(db: AsyncSession, user_id: uuid.UUID):
+async def get_listings(db: AsyncSession, user_id: uuid.UUID, start: int, end: int):
     """Gets user skills with pdf from spaCy worker, then updates it to db and returns skills"""
     stmt = select(UserSkill).where(UserSkill.user_id == user_id)
     result = await db.execute(stmt)
     user = result.scalar_one()
-    listings = await to_thread.run_sync(sync_scrape_jobs, user.preference)
+    listings = await to_thread.run_sync(sync_scrape_jobs, user.preference, start, end)
     return listings

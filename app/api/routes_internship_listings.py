@@ -3,7 +3,8 @@ from typing import Annotated
 import uuid
 import io
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Response, status, UploadFile, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import filetype
 
@@ -23,6 +24,9 @@ SPACY_DOWN = "spaCy down"
 GEMINI_DOWN = "Gemini down"
 R2_DOWN = "R2 down"
 SCRAPER_DEAD = "Internship scraper down"
+
+PAGE_LENGTH = 10
+ACTIVE_PORTALS = 2 # the number of working job portals
 
 router = APIRouter(prefix="/api")
 
@@ -80,10 +84,14 @@ async def upload_skills(
 async def get_internships(
     db: Annotated[AsyncSession, Depends(get_session)],
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
+    page: Annotated[int | None, Query(ge=0)] = 0
 ):
     """Gets internship listings from users' preferences"""
     try:
-        user_internships = await get_listings(db, user_id)
+        number_per_portal = (PAGE_LENGTH / ACTIVE_PORTALS)
+        start = page * number_per_portal
+        end = start + number_per_portal
+        user_internships = await get_listings(db, user_id, start, end)
         return user_internships
     except ScraperDown as e:
         raise HTTPException(
