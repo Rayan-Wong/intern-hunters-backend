@@ -9,10 +9,24 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
 
+# Install apt and texlive
+RUN apt update && apt install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    curl \
+    gnupg \
+    texlive-xetex \
+    texlive-fonts-recommended \
+    texlive-latex-recommended \
+    texlive-latex-extra \
+    git \
+ && apt clean && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 # Copy alembic related stuff
-COPY alembic alembic/
+COPY /alembic alembic/
 COPY alembic.ini .
+COPY /tests tests/
 
 # Install pip requirements
 COPY requirements.txt .
