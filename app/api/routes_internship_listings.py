@@ -88,7 +88,7 @@ async def get_internships(
 ):
     """Gets internship listings from users' preferences"""
     try:
-        number_per_portal = (PAGE_LENGTH / ACTIVE_PORTALS)
+        number_per_portal = (PAGE_LENGTH // ACTIVE_PORTALS)
         start = page * number_per_portal
         end = start + number_per_portal
         user_internships = await get_listings(db, user_id, start, end)
