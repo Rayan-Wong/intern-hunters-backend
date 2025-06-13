@@ -12,10 +12,11 @@ from app.schemas.internship_listings import InternshipListing
 from app.services.internship_listings_service import upload_resume, get_listings
 from app.dependencies.security import verify_jwt
 from app.db.database import get_session
-from app.exceptions.internship_listings_exceptions import spaCyDown, GeminiDown, ScraperDown, R2Down
+from app.exceptions.internship_listings_exceptions import spaCyDown, GeminiDown, ScraperDown, R2Down, NotAddedDetails
 from app.openapi import (
     BAD_JWT,
-    SERVICE_DEAD
+    SERVICE_DEAD,
+    NO_DETAILS
 )
 
 NOT_A_PDF = "Not a pdf"
@@ -24,6 +25,7 @@ SPACY_DOWN = "spaCy down"
 GEMINI_DOWN = "Gemini down"
 R2_DOWN = "R2 down"
 SCRAPER_DEAD = "Internship scraper down"
+NEVER_UPLOADED_DETAILS = "User has not uploaded details"
 
 PAGE_LENGTH = 10
 ACTIVE_PORTALS = 2 # the number of working job portals
@@ -77,7 +79,7 @@ async def upload_skills(
         ) from e
 
 @router.get("/internship_listings",
-    responses={**BAD_JWT, **SERVICE_DEAD},
+    responses={**BAD_JWT, **SERVICE_DEAD, **NO_DETAILS},
     response_model=list[InternshipListing],
     tags=["internship_listings"]
 )
@@ -88,11 +90,16 @@ async def get_internships(
 ):
     """Gets internship listings from users' preferences"""
     try:
-        number_per_portal = (PAGE_LENGTH / ACTIVE_PORTALS)
+        number_per_portal = (PAGE_LENGTH // ACTIVE_PORTALS)
         start = page * number_per_portal
         end = start + number_per_portal
         user_internships = await get_listings(db, user_id, start, end)
         return user_internships
+    except NotAddedDetails as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=NEVER_UPLOADED_DETAILS
+        ) from spaCyDown
     except ScraperDown as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
