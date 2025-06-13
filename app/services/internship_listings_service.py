@@ -14,7 +14,7 @@ from app.workers.resume_parser import get_skills
 from app.workers.job_scraper import sync_scrape_jobs
 from app.workers.gemini import get_gemini_client
 from app.workers.r2 import R2
-from app.exceptions.internship_listings_exceptions import spaCyDown, GeminiDown, ScraperDown
+from app.exceptions.internship_listings_exceptions import NotAddedDetails
 
 async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
     """Gets user skills with pdf from spaCy worker, then updates it to db and returns skills"""
@@ -42,8 +42,13 @@ async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
 
 async def get_listings(db: AsyncSession, user_id: uuid.UUID, start: int, end: int):
     """Gets user skills with pdf from spaCy worker, then updates it to db and returns skills"""
-    stmt = select(UserSkill).where(UserSkill.user_id == user_id)
-    result = await db.execute(stmt)
-    user = result.scalar_one()
-    listings = await to_thread.run_sync(sync_scrape_jobs, user.preference, start, end)
-    return listings
+    try:
+        stmt = select(UserSkill).where(UserSkill.user_id == user_id)
+        result = await db.execute(stmt)
+        user = result.scalar_one()
+        listings = await to_thread.run_sync(sync_scrape_jobs, user.preference, start, end)
+        return listings
+    except NoResultFound:
+        # user has not added preferences
+        await db.rollback()
+        raise NotAddedDetails from NoResultFound

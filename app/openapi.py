@@ -189,3 +189,14 @@ SERVICE_DEAD = {
         }
     }
 }
+
+NO_DETAILS = {
+    400: {
+        "description": "The user has not uploaded details",
+        "content": {
+            "application/json": {
+                "example": {"detail": "User has not uploaded details"}
+            }
+        }
+    }
+}
