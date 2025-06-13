@@ -9,6 +9,21 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, patch
 
 from tests.conftest import UserTest, client, get_user_token
+from app.schemas.internship_listings import InternshipListing
+
+@pytest.fixture
+def mock_scraper():
+    def fake_scraper(unused: str, start: int, end: int):
+        listings = [InternshipListing(
+                company = f"{i}",
+                job_url="Lorem",
+                title="Ipsum",
+                description="Lol",
+                date_posted=None
+            ) for i in range(start, end, 1)]
+        return listings
+    with patch("app.services.internship_listings_service.sync_scrape_jobs", side_effect=fake_scraper) as mock:
+        yield mock
 
 @pytest.fixture
 def get_resume():
@@ -70,3 +85,20 @@ async def test_listings(client: AsyncClient, get_user_token: str):
     })
     assert result.status_code == status.HTTP_200_OK
     assert result.json() != []
+
+@pytest.mark.asyncio
+async def test_pagination(client: AsyncClient, get_user_token: str, mock_scraper):
+    """Tests if pagination works"""
+    result1 = await client.get("/api/internship_listings", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result1.status_code == status.HTTP_200_OK
+    assert result1.json()[0]["company"] == "0"
+    assert mock_scraper.called
+    result2 = await client.get("/api/internship_listings",
+        params={"page": 1},
+        headers={
+        "Authorization": f"Bearer {get_user_token}"
+        })
+    assert result2.status_code == status.HTTP_200_OK
+    assert result2.json()[0]["company"] == "5"
