@@ -1,12 +1,23 @@
 services:
   backend:
-    image: backend
+    container_name: backend
     build:
       context: .
       dockerfile: ./Dockerfile
     ports:
       - 8080:8080
     env_file: .env
+    depends_on:
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/postgres
+      - SYNC_DATABASE_URL=postgresql://postgres:password@db:5432/postgres
+    command: /app/start.sh
     develop:
       watch:
         - path: ./app
@@ -21,3 +32,32 @@ services:
         - path: .
           action: sync+restart
           target: requirements.txt
+
+  redis:
+    image: redis:8.0.2
+    container_name: redis
+    ports:
+    - 6379:6379
+    volumes: 
+     - redis-data:/data
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    restart: unless-stopped
+
+  db:
+    image: postgres:17.5
+    container_name: db
+    ports:
+    - 5432:5432
+    volumes:
+    - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      - POSTGRES_PASSWORD=password
+
+volumes:
+  redis-data:
+  db-data:
