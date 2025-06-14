@@ -26,6 +26,8 @@ WORKDIR /app
 # Copy alembic related stuff
 COPY /alembic alembic/
 COPY alembic.ini .
+
+# Copy my tests
 COPY /tests tests/
 
 # Install pip requirements
@@ -33,6 +35,11 @@ COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
 
 COPY app app/
+
+# Copy start script for use in dev environment (overrides CMD line below)
+COPY create_dev_db.py ./create_dev_db.py
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
 
 # Creates a non-root user with an explicit UID and adds permission to access the /app folder
 # For more info, please refer to https://aka.ms/vscode-docker-python-configure-containers
