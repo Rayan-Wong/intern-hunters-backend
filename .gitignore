@@ -3,6 +3,7 @@ __pycache__
 .pytest_cache
 .vscode
 .coverage
+.coverage.*
 test_resume.pdf
 # windows
 .venv

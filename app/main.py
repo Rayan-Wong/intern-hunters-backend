@@ -4,24 +4,22 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.workers.resume_parser import load_skills, load_nlp
 from .api import routes_auth, routes_applications, routes_internship_listings
 from .openapi import TAGS_METADATA, DESCRIPTION
 
-"""
-Not in use: We're now using alembic to manage our db
+import app.core.process_pool as pool
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_db()
+    """Creates process pool for spacy since it is CPU intensive"""
+    pool.create_process_pool()
+    if pool.executor is None:
+        raise RuntimeError("Process pool failed to start")
     yield
-"""
-
-load_skills()
-load_nlp()
 
 app = FastAPI(
     openapi_tags=TAGS_METADATA,
-    # lifespan=lifespan, // see above
+    lifespan=lifespan,
     description=DESCRIPTION
 )
 
