@@ -5,6 +5,7 @@ import pytest_asyncio
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from httpx import ASGITransport, AsyncClient
+from asgi_lifespan import LifespanManager
 
 from app.db.database import get_session
 from app.main import app
@@ -62,10 +63,10 @@ async def client(create_mock_db):
         async with create_mock_db as db:
             yield db
     app.dependency_overrides[get_session] = override_session
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        yield client
-
-
+    async with LifespanManager(app) as manager:
+        async with AsyncClient(transport=ASGITransport(app=manager.app), base_url="http://test") as client:
+            yield client
+        
 @pytest_asyncio.fixture
 async def get_user_token(client: AsyncClient, good_user: UserTest):
     """generates good user token to use"""
