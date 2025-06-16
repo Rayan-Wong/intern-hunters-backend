@@ -12,11 +12,18 @@ services:
         condition: service_started
       db:
         condition: service_healthy
+      localstack:
+        condition: service_healthy
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/postgres
       - SYNC_DATABASE_URL=postgresql://postgres:password@db:5432/postgres
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - R2_BUCKET_URL=http://localstack:4566/my-bucket
+      - R2_BUCKET_NAME=my-bucket
+      - R2_REGION=us-east-1
     command: /app/start.sh
     develop:
       watch:
@@ -58,6 +65,32 @@ services:
     environment:
       - POSTGRES_PASSWORD=password
 
+  localstack:
+    container_name: localstack
+    image: localstack/localstack
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+    environment:
+      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
+      - DEBUG=0
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - awslocal s3 ls
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - r2-data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./init_bucket.sh:/etc/localstack/init/ready.d/init_bucket.sh
+
 volumes:
   redis-data:
   db-data:
+  r2-data:
+
