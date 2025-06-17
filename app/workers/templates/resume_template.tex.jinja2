@@ -39,8 +39,16 @@
   \noindent
   \begin{tabularx}{\textwidth}{>{\centering\arraybackslash}X}
     \namesize\MakeUppercase{\textbf{\fullname}}\\
-    #1 \textbar\ #2\\
+    #1\textbar\ #2\\
     #3
+  \end{tabularx}%
+}
+\newcommand{\ResumeHeaderPhoneless}[2]{%
+  \noindent
+  \begin{tabularx}{\textwidth}{>{\centering\arraybackslash}X}
+    \namesize\MakeUppercase{\textbf{\fullname}}\\
+    #1\\
+    #2
   \end{tabularx}%
 }
 
@@ -93,10 +101,10 @@
 \def \emaillink     { mailto:{{ email }} }
 \def \emailtext     { {{ email }} }
 \def \linkedinlink  { {{ linkedin_link }} }
-\def \linkedintext  { {{ linkedin_text }} }
-
+ 
 \def \headertype    {\ResumeHeader}
-\def \linkedin      {\href{\linkedinlink}{\linkedintext}}
+\def \headerphoneless {\ResumeHeaderPhoneless}
+\def \linkedin      {\href{https://{{ linkedin_link }}}{\linkedinlink}}
 \def \phone         {\phonenumber}
 \def \email         {\href{\emaillink}{\emailtext}}
 
@@ -105,8 +113,11 @@
 {% endraw %}
 
   % Render header
+  {% if phone %}
   \headertype{\phone}{\email}{\linkedin}
-
+  {% else %}
+  \headerphoneless{\email}{\linkedin}
+  {% endif %}
   % EDUCATION
   \SectionHeading{Education}
   \ResumeEntryStart
@@ -115,13 +126,20 @@
                      { {{ edu.location }} }%
                      { {{ edu.degree }} }%
                      { {{ edu.start_date }} -- {{ edu.end_date }} }
+        {% if edu.gpa %}
         \ResumeSubItem{ {GPA} }{ {{ edu.gpa }} }
+        {% endif %}
+        {% if edu.relevant_coursework %}
         \ResumeSubItem{ {Relevant Coursework} }{ {{ edu.relevant_coursework }} }
+        {% endif %}
+        {% if edu.activities %}
         \ResumeSubItem{ {Activities} }{ {{ edu.activities }} }
+        {% endif %}
     {% endfor %}
   \ResumeEntryEnd
 
   % EXPERIENCE
+  {% if experience %}
   \SectionHeading{Experience}
   \ResumeEntryStart
     {% for job in experience %}
@@ -136,8 +154,10 @@
       \ResumeItemListEnd
     {% endfor %}
   \ResumeEntryEnd
+  {% endif %}
 
   % PROJECTS
+  {% if projects %}
   \SectionHeading{Projects}
   \ResumeEntryStart
     {% for project in projects %}
@@ -152,14 +172,17 @@
       \ResumeItemListEnd
     {% endfor %}
   \ResumeEntryEnd
+  {% endif %}
 
   % SKILLS
+  {% if skills %}
   \SectionHeading{Skills}
   \ResumeEntryStart
     {% for skill in skills %}
       \ResumeSubItem{ {{ skill.category }} }{ {{ skill['items'] | join(', ') }} }
     {% endfor %}
   \ResumeEntryEnd
+  {% endif %}
 
 {% raw %}
 \end{document}
