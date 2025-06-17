@@ -13,7 +13,7 @@ from app.schemas.internship_listings import InternshipListing
 
 @pytest.fixture
 def mock_scraper():
-    def fake_scraper(unused: str, start: int, end: int):
+    def fake_scraper(preference: str, start: int, end: int, industry: str | None):
         listings = [InternshipListing(
                 company = f"{i}",
                 job_url="Lorem",
