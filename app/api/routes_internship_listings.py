@@ -86,6 +86,7 @@ async def upload_skills(
 async def get_internships(
     db: Annotated[AsyncSession, Depends(get_session)],
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
+    industry: str | None = None,
     page: Annotated[int | None, Query(ge=0)] = 0
 ):
     """Gets internship listings from users' preferences"""
@@ -93,7 +94,7 @@ async def get_internships(
         number_per_portal = (PAGE_LENGTH // ACTIVE_PORTALS)
         start = page * number_per_portal
         end = start + number_per_portal
-        user_internships = await get_listings(db, user_id, start, end)
+        user_internships = await get_listings(db, user_id, start, end, industry)
         return user_internships
     except NotAddedDetails as e:
         raise HTTPException(

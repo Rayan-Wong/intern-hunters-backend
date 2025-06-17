@@ -49,13 +49,13 @@ async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
     except Exception as e:
         raise e
 
-async def get_listings(db: AsyncSession, user_id: uuid.UUID, start: int, end: int):
+async def get_listings(db: AsyncSession, user_id: uuid.UUID, start: int, end: int, industry: str | None = None):
     """Gets user skills with pdf from spaCy worker, then updates it to db and returns skills"""
     try:
         stmt = select(UserSkill).where(UserSkill.user_id == user_id)
         result = await db.execute(stmt)
         user = result.scalar_one()
-        listings = await to_thread.run_sync(sync_scrape_jobs, user.preference, start, end)
+        listings = await to_thread.run_sync(sync_scrape_jobs, user.preference, start, end, industry)
         return listings
     except NoResultFound:
         # user has not added preferences
