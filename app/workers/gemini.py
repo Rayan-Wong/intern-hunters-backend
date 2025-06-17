@@ -7,28 +7,7 @@ from pydantic import BaseModel
 from app.workers.internship_roles import ROLE_LIST
 from app.core.config import get_settings
 from app.exceptions.internship_listings_exceptions import GeminiDown
-
-class Critique(BaseModel):
-    good: str
-    bad: str
-
-class Skills(BaseModel):
-    technical_skills: Critique
-    education: Critique
-    projects: Critique
-    past_experience: Critique
-    leadership: Critique
-    others: Critique
-    overall: Critique
-    decision: str
-
-class Comments(BaseModel):
-    technical_skills: list[str]
-    education: str
-    projects: list[str]
-    past_experience: list[str]
-    leadership: list[str]
-    others: list[str]
+from app.schemas.gemini import Opinion, Comments
 
 class GeminiAPI:
     def __init__(self, api_key):

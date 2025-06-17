@@ -17,6 +17,7 @@ RUN apt update && apt install -y --no-install-recommends \
     gnupg \
     texlive-xetex \
     texlive-fonts-recommended \
+    texlive-fonts-extra\
     texlive-latex-recommended \
     texlive-latex-extra \
     git \
