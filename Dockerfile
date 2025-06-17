@@ -23,6 +23,11 @@ RUN apt update && apt install -y --no-install-recommends \
  && apt clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Install pip requirements
+COPY requirements.txt .
+RUN python -m pip install -r requirements.txt
+
 # Copy alembic related stuff
 COPY /alembic alembic/
 COPY alembic.ini .
@@ -30,14 +35,9 @@ COPY alembic.ini .
 # Copy my tests
 COPY /tests tests/
 
-# Install pip requirements
-COPY requirements.txt .
-RUN python -m pip install -r requirements.txt
-
 COPY app app/
 
 # Copy start script for use in dev environment (overrides CMD line below)
-COPY create_dev_db.py ./create_dev_db.py
 COPY start.sh ./start.sh
 RUN chmod +x ./start.sh
 
