@@ -23,6 +23,7 @@ class Experience(BaseModel):
     bullets: list[str]
 
 class Project(BaseModel):
+    """Schema for resume projects"""
     name: str
     location: str
     description: str
@@ -31,10 +32,12 @@ class Project(BaseModel):
     bullets: list[str]
 
 class SkillCategory(BaseModel):
+    """Schema for resume skill categories"""
     category: str
     items: list[str]
 
 class Resume(BaseModel):
+    """Schema for resume"""
     name: str
     phone: Optional[str] = None
     email: str
