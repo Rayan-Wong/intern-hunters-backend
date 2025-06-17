@@ -4,7 +4,7 @@ __pycache__
 .vscode
 .coverage
 .coverage.*
-test_resume.pdf
+*.pdf
 # windows
 .venv
 .env
