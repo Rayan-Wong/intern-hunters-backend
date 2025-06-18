@@ -19,25 +19,25 @@ from app.exceptions.internship_listings_exceptions import NotAddedDetails
 import app.core.process_pool as pool
 
 async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
-    """Gets user skills with pdf from spaCy worker, then updates it to db and returns skills"""
-    def get_skills_sync(file_bytes: bytes):
-        """Handler function to allow resume parsing on separate process"""
-        return pool.executor.submit(get_skills, file_bytes).result()
+    """Parses resume with gemini worker, then updates it to db and returns parsed details"""
+    # def get_skills_sync(file_bytes: bytes):
+    #     """Handler function to allow resume parsing on separate process"""
+    #     return pool.executor.submit(get_skills, file_bytes).result()
     
     try:
-        user_skills = await to_thread.run_sync(get_skills_sync, file.getvalue())
+        user_parsed_resume = await get_gemini_client().parse_by_section(file.getvalue())
         user_preference = await get_gemini_client().get_preference(file.getvalue())
         await R2().upload_resume(file, user_id)
         # either create new row with user_id and skills if it doesn't exist,
         # or update it
         stmt1 = upsert(UserSkill).values({
             "user_id": user_id,
-            "skills": user_skills,
+            "parsed_resume": user_parsed_resume,
             "preference": user_preference,
         }).on_conflict_do_update(
             index_elements=[UserSkill.user_id],
             set_=dict(
-                skills=user_skills,
+                parsed_resume=user_parsed_resume,
                 preference=user_preference,
             )
         )
@@ -45,7 +45,7 @@ async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
         stmt2 = update(User).where(User.id == user_id).values(has_uploaded=True)
         await db.execute(stmt2)
         await db.commit()
-        return user_skills
+        return user_parsed_resume
     except Exception as e:
         raise e
 
