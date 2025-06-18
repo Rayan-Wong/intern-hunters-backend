@@ -69,7 +69,7 @@ async def test_no_listings(client: AsyncClient, get_user_token: str):
 @pytest.mark.asyncio
 @patch('app.services.internship_listings_service.R2') # todo: not need this by setting up local s3
 async def test_get_skills(mock_r2, client: AsyncClient, get_user_token: str, construct_file_args: dict[str, tuple[str, TextIO, str]], mock_boto3):
-    """Tests if a user's skills and preferences is successfully created from a resume"""
+    """Tests if a user's resume is successfully parsed from a resume"""
     mock_r2.return_value = mock_boto3
     result = await client.post("/api/upload_resume", files=construct_file_args, headers={
         "Authorization": f"Bearer {get_user_token}"
