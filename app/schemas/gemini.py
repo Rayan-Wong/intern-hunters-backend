@@ -8,7 +8,7 @@ class Critique(BaseModel):
     bad: str
 
 class Opinion(BaseModel):
-    """Schema for how Gemini should review a resume"""
+    """Schema for how Gemini should comment on a resume"""
     technical_skills: Critique
     education: Critique
     projects: Critique
@@ -19,7 +19,7 @@ class Opinion(BaseModel):
     decision: str
 
 class Comments(BaseModel):
-    """Schema for how Gemini should comment on a user's resume"""
+    """Schema for how Gemini should improve on a user's resume"""
     technical_skills: list[str]
     education: str
     projects: list[str]

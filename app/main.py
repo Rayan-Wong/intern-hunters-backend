@@ -9,17 +9,18 @@ from .openapi import TAGS_METADATA, DESCRIPTION
 
 import app.core.process_pool as pool
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Creates process pool for spacy since it is CPU intensive"""
-    pool.create_process_pool()
-    if pool.executor is None:
-        raise RuntimeError("Process pool failed to start")
-    yield
+# currently not in use since we are not using spaCy anymore
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     """Creates process pool for spacy since it is CPU intensive"""
+#     pool.create_process_pool()
+#     if pool.executor is None:
+#         raise RuntimeError("Process pool failed to start")
+#     yield
 
 app = FastAPI(
     openapi_tags=TAGS_METADATA,
-    lifespan=lifespan,
+    # lifespan=lifespan, not in use, see above
     description=DESCRIPTION
 )
 
