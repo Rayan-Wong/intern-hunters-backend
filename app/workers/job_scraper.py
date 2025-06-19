@@ -4,7 +4,7 @@ import numpy as np
 from app.schemas.internship_listings import InternshipListing
 from app.exceptions.internship_listings_exceptions import ScraperDown
 
-columns = ["site", "job_url", "title", "company", "date_posted", "description"]
+columns = ["site", "job_url", "title", "company", "date_posted", "is_remote", "company_industry", "description"]
 
 def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: str | None = None):
     try:
