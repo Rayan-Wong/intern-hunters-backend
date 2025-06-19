@@ -19,7 +19,9 @@ def mock_scraper():
                 job_url="Lorem",
                 title="Ipsum",
                 description="Lol",
-                date_posted=None
+                date_posted=None,
+                is_remote=True,
+                company_industry=None
             ) for i in range(start, end, 1)]
         return listings
     with patch("app.services.internship_listings_service.sync_scrape_jobs", side_effect=fake_scraper) as mock:
