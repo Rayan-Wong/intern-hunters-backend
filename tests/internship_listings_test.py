@@ -69,6 +69,14 @@ async def test_no_listings(client: AsyncClient, get_user_token: str):
     assert result.status_code == status.HTTP_400_BAD_REQUEST
 
 @pytest.mark.asyncio
+async def test_no_resume(client: AsyncClient, get_user_token: str):
+    """Tests if user without skills cannot get parsed resume"""
+    result = await client.get("/api/get_parsing", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.asyncio
 @patch('app.services.internship_listings_service.R2') # todo: not need this by setting up local s3
 async def test_get_skills(mock_r2, client: AsyncClient, get_user_token: str, construct_file_args: dict[str, tuple[str, TextIO, str]], mock_boto3):
     """Tests if a user's resume is successfully parsed from a resume"""
@@ -112,3 +120,12 @@ async def test_pagination(client: AsyncClient, get_user_token: str, mock_scraper
         })
     assert result2.status_code == status.HTTP_200_OK
     assert result2.json()[0]["company"] == "5"
+
+@pytest.mark.asyncio
+async def test_resume(client: AsyncClient, get_user_token: str):
+    """Tests if user with skills can get parsed resume"""
+    result = await client.get("/api/get_parsing", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json()

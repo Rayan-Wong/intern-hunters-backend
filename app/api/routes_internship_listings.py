@@ -9,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import filetype
 
 from app.schemas.internship_listings import InternshipListing
-from app.services.internship_listings_service import upload_resume, get_listings
+from app.schemas.resume_editor import Resume
+from app.services.internship_listings_service import upload_resume, get_listings, get_parsed
 from app.dependencies.security import verify_jwt
 from app.db.database import get_session
 from app.exceptions.internship_listings_exceptions import spaCyDown, GeminiDown, ScraperDown, R2Down, NotAddedDetails
@@ -57,21 +58,21 @@ async def upload_skills(
     try:
         await upload_resume(db, user_id, payload)
         return Response(status_code=status.HTTP_200_OK)
-    except spaCyDown:
+    except spaCyDown as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=SPACY_DOWN
-        ) from spaCyDown
-    except GeminiDown:
+        ) from e
+    except GeminiDown as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=GEMINI_DOWN
-        ) from spaCyDown
-    except R2Down:
+        ) from e
+    except R2Down as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=R2_DOWN
-        ) from R2Down
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -100,12 +101,35 @@ async def get_internships(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=NEVER_UPLOADED_DETAILS
-        ) from spaCyDown
+        ) from e
     except ScraperDown as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=SCRAPER_DEAD
-        ) from spaCyDown
+        ) from e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=SOMETHING_WRONG
+        ) from e
+    
+@router.get("/get_parsing",
+    responses={**BAD_JWT, **NO_DETAILS},
+    response_model=Resume,
+    tags=["resume_editor"]
+)
+async def get_parsing(
+    db: Annotated[AsyncSession, Depends(get_session)],
+    user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
+):
+    """Gets parsed resume of a user"""
+    try:
+        return await get_parsed(db, user_id)
+    except NotAddedDetails as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=NEVER_UPLOADED_DETAILS
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
