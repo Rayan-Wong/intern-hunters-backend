@@ -61,13 +61,15 @@
   \color{black}%
 }
 
-% Entry Formats
 \newcommand{\ResumeEntryTSDL}[4]{%
-  \vspace{1pt}\item[]% no bullet, no indent
-  \begin{flushleft}%
-    \makebox[\textwidth][s]{\textbf{#1}\hfill #2}\\[-0.1em]%
-    \makebox[\textwidth][s]{#3\hfill #4}%
-  \end{flushleft}\vspace{-2.835pt}%
+  \item[]%
+  \noindent
+    \textbf{#1}\hfill #2\\[0.1\baselineskip]
+  {%
+    \hangindent=\dimexpr\labelwidth+\labelsep\relax
+    \hangafter=1
+    \noindent#3\hfill #4\par
+  }%
 }
 
 \newcommand{\ResumeSubItem}[2]{%

@@ -35,6 +35,10 @@ TAGS_METADATA = [
     {
         "name": "internship_listings",
         "description": "Fetch 20 internship listings tailored to user. The listing description is sent as a HTML set. Note that date_posted may be null"
+    },
+    {
+        "name": "resume_editor",
+        "description": "Endpoints relevant to creating or editing resumes"
     }
 ]
 
