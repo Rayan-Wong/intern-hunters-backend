@@ -1,6 +1,7 @@
 """Modules relevant for FastAPI testing"""
 import os
 from typing import TextIO
+import io
 
 from fastapi import status
 from httpx import AsyncClient
@@ -19,7 +20,9 @@ def mock_scraper():
                 job_url="Lorem",
                 title="Ipsum",
                 description="Lol",
-                date_posted=None
+                date_posted=None,
+                is_remote=True,
+                company_industry=None
             ) for i in range(start, end, 1)]
         return listings
     with patch("app.services.internship_listings_service.sync_scrape_jobs", side_effect=fake_scraper) as mock:
@@ -54,8 +57,11 @@ def construct_bad_file_args(get_resume: TextIO):
 
 @pytest_asyncio.fixture
 async def mock_boto3():
+    async def fake_download(unused):
+        return io.BytesIO(b"hi")
     mock_boto3 = AsyncMock()
     mock_boto3.upload_resume = AsyncMock()
+    mock_boto3.download_resume = AsyncMock(side_effect=fake_download)
     return mock_boto3
 
 @pytest.mark.asyncio
@@ -67,9 +73,25 @@ async def test_no_listings(client: AsyncClient, get_user_token: str):
     assert result.status_code == status.HTTP_400_BAD_REQUEST
 
 @pytest.mark.asyncio
+async def test_no_resume(client: AsyncClient, get_user_token: str):
+    """Tests if user without skills cannot get parsed resume"""
+    result = await client.get("/api/get_parsing", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.asyncio
+async def test_no_download_resume(client: AsyncClient, get_user_token: str):
+    """Tests if user without skills cannot download resume"""
+    result = await client.get("/api/get_resume", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.asyncio
 @patch('app.services.internship_listings_service.R2') # todo: not need this by setting up local s3
-async def test_get_skills(mock_r2, client: AsyncClient, get_user_token: str, construct_file_args: dict[str, tuple[str, TextIO, str]], mock_boto3):
-    """Tests if a user's resume is successfully parsed from a resume"""
+async def test_upload_resume(mock_r2, client: AsyncClient, get_user_token: str, construct_file_args: dict[str, tuple[str, TextIO, str]], mock_boto3):
+    """Tests if a user's resume is successfully uploaded"""
     mock_r2.return_value = mock_boto3
     result = await client.post("/api/upload_resume", files=construct_file_args, headers={
         "Authorization": f"Bearer {get_user_token}"
@@ -110,3 +132,23 @@ async def test_pagination(client: AsyncClient, get_user_token: str, mock_scraper
         })
     assert result2.status_code == status.HTTP_200_OK
     assert result2.json()[0]["company"] == "5"
+
+@pytest.mark.asyncio
+async def test_resume(client: AsyncClient, get_user_token: str):
+    """Tests if user with skills can get parsed resume"""
+    result = await client.get("/api/get_parsing", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json()
+
+@pytest.mark.asyncio
+@patch('app.services.internship_listings_service.R2')
+async def test_download_resume(mock_r2, client: AsyncClient, get_user_token: str, mock_boto3):
+    """Tests if user without skills can download resume"""
+    mock_r2.return_value = mock_boto3
+    result = await client.get("/api/get_resume", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result.status_code == status.HTTP_200_OK
+    mock_boto3.download_resume.assert_awaited()

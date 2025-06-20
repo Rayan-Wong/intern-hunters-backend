@@ -1,4 +1,4 @@
-"""List of metadata tags and error responses for /docs"""
+"""List of metadata tags, error responses and other descriptions for /docs"""
 TAGS_METADATA = [
     {
         "name": "register_user",
@@ -35,6 +35,10 @@ TAGS_METADATA = [
     {
         "name": "internship_listings",
         "description": "Fetch 20 internship listings tailored to user. The listing description is sent as a HTML set. Note that date_posted may be null"
+    },
+    {
+        "name": "resume_editor",
+        "description": "Endpoints relevant to creating or editing resumes"
     }
 ]
 
@@ -44,6 +48,20 @@ the route may throw status code 401 and 403 for invalid JWT (and so the user sho
 or status code 407 for expired JWT, which means frontend should do silent token refresh at /api/token
 The exception is /api/token which accepts expired JWTs
 """
+
+FILE_DESCRIPTION = {
+    200: {
+        "description": "PDF download",
+        "content": {
+            "application/pdf": {
+                "schema": {
+                    "type": "binary",
+                    "format": "binary"
+                }
+            }
+        }
+    }
+}
 
 NO_ACCOUNT_RESPONSE = {
     401: {
@@ -196,6 +214,17 @@ NO_DETAILS = {
         "content": {
             "application/json": {
                 "example": {"detail": "User has not uploaded details"}
+            }
+        }
+    }
+}
+
+NO_UPLOADED_RESUME = {
+    400: {
+        "description": "The user has not uploaded resume",
+        "content": {
+            "application/json": {
+                "example": {"detail": "User has not uploaded resume"}
             }
         }
     }

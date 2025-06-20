@@ -1,6 +1,7 @@
 """Imports config related modules"""
 from pathlib import Path
 from functools import lru_cache
+from typing import Optional
 
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
@@ -18,6 +19,7 @@ class Settings(BaseSettings):
     r2_bucket_url: str
     r2_bucket_name: str
     r2_region: str
+    local_cache_dir: Optional[str] = "."
 
 @lru_cache
 def get_settings():

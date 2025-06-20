@@ -69,7 +69,8 @@ class GeminiAPI:
     
     async def parse_by_section(self, file: bytes):
         """Parses resume by section"""
-        prompt = f"""You are a structured data extractor for resumes. Your task is to convert the raw resume text into the following JSON format, strictly adhering to this schema (based on Pydantic models):
+        prompt = f"""
+        You are a structured data extractor for resumes. Your task is to convert the raw resume text into the following JSON format, strictly adhering to this schema (based on Pydantic models):
             class Education(BaseModel):
                 institution: str
                 location: str
@@ -109,8 +110,13 @@ class GeminiAPI:
                 experience: Optional[list[Experience]] = None
                 projects: Optional[list[Project]] = None
                 skills: Optional[list[SkillCategory]] = None
-
-            If the section is empty, put None. Follow the resume's section at all times.
+                
+            Escape all LaTeX-special characters incluidng & and % by prefixing each with a backslash so the resulting JSON can be inserted directly into LaTeX without compilation errors.
+            Dates for projects and experiences should be in 'MMM yyyy'
+            Categorise the given skills based off the resume
+            If a section is absent or contains no data, set it explicitly to null (JSON null) instead of an empty list or string.
+            Preserve the ordering of sections exactly as they appear in the raw resume; do not invent or reorder content.
+            Output only the final JSON object—no explanations, comments, or additional text.
         """
         return await self.__generate_content(prompt=prompt, file=file, config_schema=Resume)
 

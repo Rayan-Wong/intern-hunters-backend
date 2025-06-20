@@ -12,5 +12,5 @@ class UserSkill(Base):
     __tablename__ = "user_skills_and_preferences"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid(), ForeignKey("user.id"), unique=True)
-    parsed_resume: Mapped[List[str]] = mapped_column(JSON(), nullable=True)
+    parsed_resume: Mapped[dict[str]] = mapped_column(JSON(), nullable=True)
     preference: Mapped[str] = mapped_column(nullable=True)
