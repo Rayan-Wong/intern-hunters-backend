@@ -1,6 +1,7 @@
 """Module dependencies for SQLAlchemy, user id, models and schemas for user applications"""
 import uuid
 import io
+import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
@@ -14,7 +15,8 @@ from app.workers.resume_parser import get_skills
 from app.workers.job_scraper import sync_scrape_jobs
 from app.workers.gemini import get_gemini_client
 from app.workers.r2 import R2
-from app.exceptions.internship_listings_exceptions import NotAddedDetails
+from app.exceptions.internship_listings_exceptions import NotAddedDetails, NotUploadedResume
+from app.schemas.resume_editor import Resume
 
 import app.core.process_pool as pool
 
@@ -61,3 +63,24 @@ async def get_listings(db: AsyncSession, user_id: uuid.UUID, start: int, end: in
         # user has not added preferences
         await db.rollback()
         raise NotAddedDetails from NoResultFound
+
+async def get_parsed(db: AsyncSession, user_id: uuid.UUID):
+    """Fetches parsed user resume"""
+    try:
+        stmt = select(UserSkill).where(UserSkill.user_id == user_id)
+        result = await db.execute(stmt)
+        user = result.scalar_one()
+        return Resume.model_validate(json.loads(user.parsed_resume))
+    except NoResultFound:
+        # user has not parsed his resume
+        await db.rollback()
+        raise NotAddedDetails from NoResultFound
+
+async def fetch_resume(db: AsyncSession, user_id: uuid.UUID):
+    """Fetches resume from either local cache or R2"""
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one()
+    if not user.has_uploaded:
+        raise NotUploadedResume
+    return await R2().download_resume(user_id)
