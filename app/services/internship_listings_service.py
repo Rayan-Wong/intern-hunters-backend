@@ -11,14 +11,10 @@ from anyio import to_thread
 
 from app.models.user_skills import UserSkill
 from app.models.user import User
-from app.workers.resume_parser import get_skills
 from app.workers.job_scraper import sync_scrape_jobs
 from app.workers.gemini import get_gemini_client
 from app.workers.r2 import R2
-from app.exceptions.internship_listings_exceptions import NotAddedDetails, NotUploadedResume
-from app.schemas.resume_editor import Resume
-
-import app.core.process_pool as pool
+from app.exceptions.internship_listings_exceptions import NotAddedDetails
 
 async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
     """Parses resume with gemini worker, then updates it to db and returns parsed details"""
@@ -52,7 +48,7 @@ async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
         raise e
 
 async def get_listings(db: AsyncSession, user_id: uuid.UUID, start: int, end: int, industry: str | None = None):
-    """Gets user skills with pdf from spaCy worker, then updates it to db and returns skills"""
+    """Gets user prefernece, then returns catered internship listings"""
     try:
         stmt = select(UserSkill).where(UserSkill.user_id == user_id)
         result = await db.execute(stmt)
@@ -63,24 +59,6 @@ async def get_listings(db: AsyncSession, user_id: uuid.UUID, start: int, end: in
         # user has not added preferences
         await db.rollback()
         raise NotAddedDetails from NoResultFound
-
-async def get_parsed(db: AsyncSession, user_id: uuid.UUID):
-    """Fetches parsed user resume"""
-    try:
-        stmt = select(UserSkill).where(UserSkill.user_id == user_id)
-        result = await db.execute(stmt)
-        user = result.scalar_one()
-        return Resume.model_validate(json.loads(user.parsed_resume))
-    except NoResultFound:
-        # user has not parsed his resume
+    except Exception as e:
         await db.rollback()
-        raise NotAddedDetails from NoResultFound
-
-async def fetch_resume(db: AsyncSession, user_id: uuid.UUID):
-    """Fetches resume from either local cache or R2"""
-    stmt = select(User).where(User.id == user_id)
-    result = await db.execute(stmt)
-    user = result.scalar_one()
-    if not user.has_uploaded:
-        raise NotUploadedResume
-    return await R2().download_resume(user_id)
+        raise e
