@@ -6,7 +6,8 @@ from aiofiles import open as async_open
 import aiofiles.os as os
 from pathlib import Path
 
-from app.exceptions.internship_listings_exceptions import R2Down, CacheFail
+from app.exceptions.internship_listings_exceptions import R2Down
+from app.exceptions.resume_creator_exceptions import CacheFail
 from app.core.config import get_settings
 
 class R2:

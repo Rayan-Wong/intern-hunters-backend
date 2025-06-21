@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import routes_auth, routes_applications, routes_internship_listings
+from .api import routes_auth, routes_applications, routes_internship_listings, routes_resume_creator
 from .openapi import TAGS_METADATA, DESCRIPTION
 
 import app.core.process_pool as pool
@@ -39,6 +39,7 @@ app.add_middleware(
 app.include_router(routes_auth.router)
 app.include_router(routes_applications.router)
 app.include_router(routes_internship_listings.router)
+app.include_router(routes_resume_creator.router)
 
 @app.get("/")
 async def root():

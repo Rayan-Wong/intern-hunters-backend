@@ -21,16 +21,8 @@ TAGS_METADATA = [
         "description": "Endpoints for creating, retrieving, modifying, and deleting individual user applications."
     },
     {
-        "name": "all_applications",
-        "description": "Retrieve all applications submitted by a specific user."
-    },
-    {
-        "name": "all_deadlines",
-        "description": "Retrieve all applications sorted by their upcoming deadlines."
-    },
-    {
         "name": "upload_resume",
-        "description": "Retrieve user's skills and internship preferences from their resume."
+        "description": "Retrieve user's resume sections."
     },
     {
         "name": "internship_listings",
