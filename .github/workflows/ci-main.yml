@@ -52,7 +52,8 @@ jobs:
           texlive-fonts-recommended \
           texlive-fonts-extra \
           texlive-latex-recommended \
-          texlive-latex-extra
+          texlive-latex-extra \
+          lmodern
     - name: Lint with flake8
       run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
