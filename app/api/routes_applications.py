@@ -82,7 +82,7 @@ async def get_application(
 
 @router.get("/all_applications",
     response_model=list[GetUserApplication],
-    tags=["all_applications"],
+    tags=["application"],
     responses=BAD_JWT
 )
 async def get_all_applications(
@@ -102,7 +102,7 @@ async def get_all_applications(
 
 @router.get("/all_deadlines",
     response_model=list[GetUserApplication],
-    tags=["all_deadlines"],
+    tags=["application"],
     responses=BAD_JWT
 )
 async def get_all_deadlines(
