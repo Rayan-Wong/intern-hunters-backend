@@ -42,6 +42,17 @@ jobs:
     - name: Download test resume
       run: |
         curl -L "$TEST_RESUME" -o ./tests/test_resume.pdf
+        - name: Download LaTeX packages
+      run: |
+        apt update
+        apt install -y --no-install-recommends \
+          build-essential \
+          ca-certificates \
+          texlive-xetex \
+          texlive-fonts-recommended \
+          texlive-fonts-extra \
+          texlive-latex-recommended \
+          texlive-latex-extra
     - name: Lint with flake8
       run: |
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
