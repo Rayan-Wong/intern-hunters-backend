@@ -44,8 +44,8 @@ jobs:
         curl -L "$TEST_RESUME" -o ./tests/test_resume.pdf
     - name: Download LaTeX packages
       run: |
-        apt update
-        apt install -y --no-install-recommends \
+        sudo apt update
+        sudo apt install -y --no-install-recommends \
           build-essential \
           ca-certificates \
           texlive-xetex \
