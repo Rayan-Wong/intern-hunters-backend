@@ -1,53 +1,35 @@
-from jinja2 import Environment, FileSystemLoader
 import subprocess
-from pathlib import Path
 import os
+import uuid
+from io import BytesIO
 
-def test_template():
-    try:
-        current_dir = Path(__file__).resolve().parent
+from pathlib import Path
+from jinja2 import Environment, FileSystemLoader
 
-        env = Environment(loader=FileSystemLoader(current_dir / "templates"))
-        template = env.get_template("resume_template.tex.jinja2")
+from app.schemas.resume_editor import Resume
+from app.exceptions.resume_creator_exceptions import ResumeCreatorDown
 
-        context = {
-          "name": "Admin",
-          "email": "admin@gmail.com",
-          "linkedin_link": "linkedin.com/in/admin",
-          "education": [
-            {
-              "institution": "National University of Singapore (NUS)",
-              "location": "Singapore",
-              "degree": "Bachelor of Science in Skibidilogy",
-              "start_date": "2024",
-              "end_date": "2027",
-            }
-          ],
-          "skills": [
-            {
-              "category": "Programming Languages",
-              "items": [
-                "Python",
-                "C",
-                "C++",
-                "SQL",
-                "JavaScript",
-                "TypeScript"
-              ]
-            }
-          ]
-        }
-        rendered_tex = template.render(context)
-        output_path = "resume.tex"
-
-        with open(output_path, "w") as f:
-            f.write(rendered_tex)
-
-        subprocess.run(["pdflatex", "-interaction=nonstopmode", output_path], check=True)
-    finally:
-        os.remove("resume.tex")
-        os.remove("resume.aux")
-        os.remove("resume.log")
-        os.remove("resume.out")
-
-test_template()
+def create_from_template(details: Resume, user_id: uuid.UUID):
+  try:
+      current_dir = Path(__file__).resolve().parent
+      env = Environment(loader=FileSystemLoader(current_dir / "templates"))
+      template = env.get_template("resume_template.tex.jinja2")
+      rendered_tex = template.render(details)
+      output_path = f"{user_id}_resume.tex"
+      with open(output_path, "w") as f:
+          f.write(rendered_tex)
+      subprocess.run(["pdflatex", "-interaction=nonstopmode", output_path])
+      pdf_path = f"{user_id}_resume.pdf"
+      result = BytesIO()
+      with open(pdf_path, "rb") as f:
+        result.write(f.read())
+      result.seek(0)
+      return result
+  except Exception as e:
+      raise ResumeCreatorDown from e
+  finally:
+      os.remove(f"{user_id}_resume.tex")
+      os.remove(f"{user_id}_resume.aux")
+      os.remove(f"{user_id}_resume.log")
+      os.remove(f"{user_id}_resume.out")
+      os.remove(f"{user_id}_resume.pdf")

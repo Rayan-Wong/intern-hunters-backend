@@ -2,6 +2,8 @@
 import os
 import pytest
 import pytest_asyncio
+import io
+from unittest.mock import AsyncMock
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from httpx import ASGITransport, AsyncClient
@@ -83,3 +85,12 @@ async def get_user_token(client: AsyncClient, good_user: UserTest):
     )
     token = res1.json()["access_token"]
     return token
+
+@pytest_asyncio.fixture
+async def mock_boto3():
+    async def fake_download(unused):
+        return io.BytesIO(b"hi")
+    mock_boto3 = AsyncMock()
+    mock_boto3.upload_resume = AsyncMock()
+    mock_boto3.download_resume = AsyncMock(side_effect=fake_download)
+    return mock_boto3

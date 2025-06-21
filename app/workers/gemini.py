@@ -2,7 +2,6 @@ import io
 
 from google import genai
 from google.genai import types
-from pydantic import BaseModel
 
 from app.workers.internship_roles import ROLE_LIST
 from app.core.config import get_settings
