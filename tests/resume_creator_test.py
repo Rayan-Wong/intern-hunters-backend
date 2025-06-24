@@ -1,7 +1,7 @@
+"""Modules relevant for FastAPI testing"""
 from fastapi import status
 from httpx import AsyncClient
 import pytest
-import pytest_asyncio
 from unittest.mock import patch
 
 from tests.conftest import UserTest, client, get_user_token, mock_boto3
@@ -9,6 +9,7 @@ from app.schemas.resume_editor import Resume, Education
 
 @pytest.fixture
 def get_resume_details():
+    """Fixture to return mock resume details"""
     return Resume(
         name="test",
         email="test",
@@ -21,7 +22,7 @@ def get_resume_details():
                 start_date="test",
                 end_date="test"
             )
-        ] 
+        ]
     ).model_dump()
 
 @pytest.mark.asyncio
@@ -51,7 +52,13 @@ async def test_no_download_resume(mock_r2, client: AsyncClient, get_user_token: 
 
 @pytest.mark.asyncio
 @patch('app.services.resume_creator_service.R2')
-async def test_create_resume(mock_r2, client: AsyncClient, get_user_token: str, get_resume_details: Resume, mock_boto3):
+async def test_create_resume(
+    mock_r2,
+    client: AsyncClient,
+    get_user_token: str,
+    get_resume_details: Resume,
+    mock_boto3
+):
     """Tests if user can create resume"""
     mock_r2.return_value = mock_boto3
     result = await client.post("/api/create_resume", json=get_resume_details, headers={
@@ -82,7 +89,13 @@ async def test_download_resume(mock_r2, client: AsyncClient, get_user_token: str
 
 @pytest.mark.asyncio
 @patch('app.services.resume_creator_service.R2')
-async def test_edit_resume(mock_r2, client: AsyncClient, get_user_token: str, get_resume_details: Resume, mock_boto3):
+async def test_edit_resume(
+    mock_r2,
+    client: AsyncClient,
+    get_user_token: str,
+    get_resume_details: Resume,
+    mock_boto3
+):
     """Tests if user can create resume"""
     mock_r2.return_value = mock_boto3
     result = await client.put("/api/edit_resume", json=get_resume_details, headers={

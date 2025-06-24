@@ -12,5 +12,5 @@ class InternshipListing(BaseModel):
     company: str
     date_posted: Optional[datetime.datetime] = None
     is_remote: Optional[bool] = None
-    company_industry: Optional[str] = None 
+    company_industry: Optional[str] = None
     description: str

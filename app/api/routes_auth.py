@@ -124,7 +124,7 @@ async def login_user(
         **BAD_REFRESH_TOKEN_RESPONSE
     }
 )
-async def refresh_token(
+async def refresh_user_token(
     user_id: Annotated[uuid.UUID, Depends(verify_expired_jwt)],
     user_jwt: Annotated[UserJWT, Depends(UserJWT)],
     response: Response,
@@ -154,7 +154,7 @@ async def logout(
     """Logs user out"""
     try:
         user_auth = UserAuth(db)
-        session_id = await user_auth.log_out(user_id)
+        await user_auth.log_out(user_id)
         return Response(status_code=status.HTTP_200_OK)
     except NoAccountError:
         raise HTTPException(

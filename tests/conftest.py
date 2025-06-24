@@ -1,9 +1,10 @@
 """Imports relevant modules needed to test and override db dependency"""
+import io
 import os
+from unittest.mock import AsyncMock
+
 import pytest
 import pytest_asyncio
-import io
-from unittest.mock import AsyncMock
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from httpx import ASGITransport, AsyncClient
@@ -61,14 +62,18 @@ async def create_mock_db():
 async def client(create_mock_db):
     """Override db dependency"""
     async def override_session():
-        """Wraps fixture in a non-fixture function to allow fixture to be used as dependency injection"""
+        """Wraps fixture in a non-fixture function to allow fixture 
+        to be used as dependency injection"""
         async with create_mock_db as db:
             yield db
     app.dependency_overrides[get_session] = override_session
     async with LifespanManager(app) as manager:
-        async with AsyncClient(transport=ASGITransport(app=manager.app), base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=manager.app),
+            base_url="http://test"
+        ) as client:
             yield client
-        
+
 @pytest_asyncio.fixture
 async def get_user_token(client: AsyncClient, good_user: UserTest):
     """generates good user token to use"""
@@ -88,6 +93,7 @@ async def get_user_token(client: AsyncClient, good_user: UserTest):
 
 @pytest_asyncio.fixture
 async def mock_boto3():
+    """Fixture to mock boto3"""
     async def fake_download(unused):
         return io.BytesIO(b"hi")
     mock_boto3 = AsyncMock()

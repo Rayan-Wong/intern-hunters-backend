@@ -3,8 +3,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import status
-from httpx import AsyncClient
 from fastapi.encoders import jsonable_encoder
+from httpx import AsyncClient
 import pytest
 from pydantic import BaseModel
 
@@ -173,9 +173,13 @@ async def test_get_all_deadlines(client: AsyncClient, get_user_token: str):
         status="Interview",
         action_deadline=datetime.now(timezone.utc)+timedelta(days=3)
     )
-    submission1 = await client.post("/api/application", json=jsonable_encoder(application1.model_dump()), headers={
-        "Authorization": f"Bearer {get_user_token}"
-    })
+    await client.post(
+        "/api/application",
+        json=jsonable_encoder(application1.model_dump()),
+        headers={
+            "Authorization": f"Bearer {get_user_token}"
+        }
+    )
     application2 = UserApplication(
         company_name="Melvin",
         role_name="Gurt",
@@ -183,9 +187,13 @@ async def test_get_all_deadlines(client: AsyncClient, get_user_token: str):
         status="Interview",
         action_deadline=datetime.now(timezone.utc)+timedelta(days=2)
     )
-    submission2 = await client.post("/api/application", json=jsonable_encoder(application2.model_dump()), headers={
-        "Authorization": f"Bearer {get_user_token}"
-    })
+    await client.post(
+        "/api/application",
+        json=jsonable_encoder(application2.model_dump()),
+        headers={
+            "Authorization": f"Bearer {get_user_token}"
+        }
+    )
     result = await client.get("/api/all_deadlines",
         headers={"Authorization": f"Bearer {get_user_token}"}
     )

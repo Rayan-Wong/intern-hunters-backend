@@ -1,5 +1,4 @@
-from typing import Optional
-
+"""Modules for pydantic dependency"""
 from pydantic import BaseModel
 
 class Critique(BaseModel):
