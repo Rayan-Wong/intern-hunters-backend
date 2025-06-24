@@ -1,6 +1,5 @@
 """Module dependencies for SQLAlchemy, user id, models and schemas for user applications"""
 import uuid
-import io
 import json
 
 from sqlalchemy.ext.asyncio import AsyncSession

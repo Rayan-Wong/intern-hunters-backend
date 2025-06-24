@@ -1,18 +1,18 @@
-"""Modules relevant for FastAPI testing"""
+"""Modules relevant for FastAPI testing and patching of scraper, boto3 API"""
 import os
 from typing import TextIO
+from unittest.mock import patch
 
 from fastapi import status
 from httpx import AsyncClient
 import pytest
-import pytest_asyncio
-from unittest.mock import patch
 
 from tests.conftest import UserTest, client, get_user_token, mock_boto3
 from app.schemas.internship_listings import InternshipListing
 
 @pytest.fixture
 def mock_scraper():
+    """Mock fixture to patch internship scraper API"""
     def fake_scraper(preference: str, start: int, end: int, industry: str | None):
         listings = [InternshipListing(
                 company = f"{i}",
@@ -24,11 +24,15 @@ def mock_scraper():
                 company_industry=None
             ) for i in range(start, end, 1)]
         return listings
-    with patch("app.services.internship_listings_service.sync_scrape_jobs", side_effect=fake_scraper) as mock:
+    with patch(
+        "app.services.internship_listings_service.sync_scrape_jobs",
+        side_effect=fake_scraper
+    ) as mock:
         yield mock
 
 @pytest.fixture
 def get_resume():
+    """Fixture to get good resume pdf"""
     current_dir = os.path.dirname(__file__)
     pdf_path = os.path.join(current_dir, "test_resume.pdf")
     with open(pdf_path, "rb") as file:
@@ -36,27 +40,41 @@ def get_resume():
 
 @pytest.fixture
 def construct_file_args(get_resume: TextIO):
+    """Fixture to create needed args for AsyncClient"""
     return {
         "file": ("resume.pdf", get_resume, "application/pdf")
     }
 
 @pytest.fixture
 def get_bad_resume():
+    """Fixture to get bad resume docx"""
     current_dir = os.path.dirname(__file__)
     pdf_path = os.path.join(current_dir, "test_resume.docx")
     with open(pdf_path, "rb") as file:
         yield file
 
 @pytest.fixture
-def construct_bad_file_args(get_resume: TextIO):
+def construct_bad_file_args(get_bad_resume: TextIO):
+    """Fixture to create needed args for AsyncClient"""
     return {
         # yes, that really is a docx mime type
-        "file": ("resume.docx", get_bad_resume, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        "file": (
+            "resume.docx",
+            get_bad_resume,
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
     }
 
 @pytest.mark.asyncio
-@patch('app.services.internship_listings_service.R2') # todo: not need this by setting up local s3
-async def test_upload_resume(mock_r2, client: AsyncClient, get_user_token: str, construct_file_args: dict[str, tuple[str, TextIO, str]], mock_boto3):
+# todo: not need to patch by setting up local s3
+@patch('app.services.internship_listings_service.R2')
+async def test_upload_resume(
+    mock_r2, 
+    client: AsyncClient,
+    get_user_token: str,
+    construct_file_args: dict[str, tuple[str, TextIO, str]],
+    mock_boto3
+):
     """Tests if a user's resume is successfully uploaded"""
     mock_r2.return_value = mock_boto3
     result = await client.post("/api/upload_resume", files=construct_file_args, headers={
@@ -66,7 +84,11 @@ async def test_upload_resume(mock_r2, client: AsyncClient, get_user_token: str, 
     mock_boto3.upload_resume.assert_awaited()
 
 @pytest.mark.asyncio
-async def test_bad_resume(client: AsyncClient, get_user_token: str, construct_bad_file_args: dict[str, tuple[str, TextIO, str]]):
+async def test_bad_resume(
+    client: AsyncClient,
+    get_user_token: str,
+    construct_bad_file_args: dict[str, tuple[str, TextIO, str]]
+):
     """Tests if the path rejects a bad resume"""
     result = await client.post("/api/upload_resume", files=construct_bad_file_args, headers={
         "Authorization": f"Bearer {get_user_token}"

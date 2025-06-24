@@ -1,7 +1,6 @@
 """Module dependencies for SQLAlchemy, user id, models and schemas for user applications"""
 import uuid
 import io
-import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
@@ -21,7 +20,7 @@ async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
     # def get_skills_sync(file_bytes: bytes):
     #     """Handler function to allow resume parsing on separate process"""
     #     return pool.executor.submit(get_skills, file_bytes).result()
-    
+
     try:
         user_parsed_resume = await get_gemini_client().parse_by_section(file.getvalue())
         user_preference = await get_gemini_client().get_preference(file.getvalue())
@@ -47,7 +46,13 @@ async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
     except Exception as e:
         raise e
 
-async def get_listings(db: AsyncSession, user_id: uuid.UUID, start: int, end: int, industry: str | None = None):
+async def get_listings(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    start: int,
+    end: int,
+    industry: str | None = None
+):
     """Gets user prefernece, then returns catered internship listings"""
     try:
         stmt = select(UserSkill).where(UserSkill.user_id == user_id)

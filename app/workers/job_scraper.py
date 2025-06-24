@@ -1,17 +1,29 @@
+"""Modules responsible for jobspy and post-processing"""
 from jobspy import scrape_jobs
 import numpy as np
 
 from app.schemas.internship_listings import InternshipListing
 from app.exceptions.internship_listings_exceptions import ScraperDown
 
-columns = ["site", "job_url", "title", "company", "date_posted", "is_remote", "company_industry", "description"]
+columns = [
+    "site",
+    "job_url",
+    "title",
+    "company",
+    "date_posted",
+    "is_remote",
+    "company_industry",
+    "description"
+]
 
 def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: str | None = None):
+    """Calls JobSpy API to produce internship listings. start, end are used to simulate pagination,
+    preferred_industry to specify industry of company"""
     try:
         if preferred_industry:
-            term = (f"{preferred_industry} {preference} (intern OR internship OR co-op OR 'summer intern' OR 'summer analyst')")
+            term = f"{preferred_industry} {preference} (intern OR internship OR co-op OR 'summer intern' OR 'summer analyst')"
         else:
-            term = (f"{preference} (intern OR internship OR co-op OR 'summer intern' OR 'summer analyst')")
+            term = f"{preference} (intern OR internship OR co-op OR 'summer intern' OR 'summer analyst')"
         jobs = scrape_jobs(
             site_name=["linkedin", "indeed"],
             search_term=term,

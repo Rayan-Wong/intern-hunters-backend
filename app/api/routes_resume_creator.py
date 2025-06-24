@@ -2,7 +2,7 @@
 from typing import Annotated
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -53,7 +53,7 @@ async def get_parsing(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
         ) from e
-    
+
 @router.get("/get_resume",
     responses={**BAD_JWT, **NO_UPLOADED_RESUME, **SERVICE_DEAD, **FILE_DESCRIPTION},
     tags=["resume_editor"],

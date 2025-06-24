@@ -1,3 +1,4 @@
+"""No modules needed"""
 ROLE_LIST = [
     # Tech
     "Software Engineering",
