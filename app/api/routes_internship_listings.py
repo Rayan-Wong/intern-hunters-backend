@@ -12,7 +12,6 @@ from app.services.internship_listings_service import upload_resume, get_listings
 from app.dependencies.security import verify_jwt
 from app.db.database import get_session
 from app.exceptions.internship_listings_exceptions import (
-    spaCyDown,
     GeminiDown,
     ScraperDown,
     R2Down,
@@ -26,7 +25,6 @@ from app.openapi import (
 
 NOT_A_PDF = "Not a pdf"
 SOMETHING_WRONG = "Something wrong"
-SPACY_DOWN = "spaCy down"
 GEMINI_DOWN = "Gemini down"
 R2_DOWN = "R2 down"
 SCRAPER_DEAD = "Internship scraper down"
@@ -63,11 +61,6 @@ async def upload_skills(
     try:
         await upload_resume(db, user_id, payload)
         return Response(status_code=status.HTTP_200_OK)
-    except spaCyDown as e:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=SPACY_DOWN
-        ) from e
     except GeminiDown as e:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

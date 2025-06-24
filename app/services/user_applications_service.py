@@ -27,10 +27,14 @@ class UserApplications:
         """Used to safely update incoming applications"""
         for key, value in app_input.model_dump().items():
             setattr(output, key, value)
+        if app_input.action_deadline:
+            setattr(output, "action_deadline",app_input.action_deadline.replace(tzinfo=None))
         return output
 
     async def create_application(self, application: UserApplicationCreate, id_user: uuid.UUID):
         """Creates user application"""
+        if application.action_deadline:
+            application.action_deadline.replace(tzinfo=None) 
         user_application = UserApplication(
             user_id=id_user,
             company_name=application.company_name,
