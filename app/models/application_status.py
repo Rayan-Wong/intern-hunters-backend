@@ -34,6 +34,6 @@ class UserApplication(Base):
         create_constraint=True,
         native_enum=False
     ))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc).replace(tzinfo=None))
     action_deadline: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     notes: Mapped[str] = mapped_column(nullable=True)
