@@ -46,7 +46,8 @@ async def upload_skills(
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
     file: UploadFile
 ):
-    """Adds/updates users' skills and preferences as a list given their resume and returns status 200"""
+    """Adds/updates users' skills and preferences as a list given their resume and 
+    returns status 200"""
     header = await file.read(261)
     kind = filetype.guess(header)
     if kind is None or kind.mime != "application/pdf":
@@ -90,7 +91,7 @@ async def get_internships(
 ):
     """Gets internship listings from users' preferences"""
     try:
-        number_per_portal = (PAGE_LENGTH // ACTIVE_PORTALS)
+        number_per_portal = PAGE_LENGTH // ACTIVE_PORTALS
         start = page * number_per_portal
         end = start + number_per_portal
         user_internships = await get_listings(db, user_id, start, end, industry)
@@ -110,4 +111,3 @@ async def get_internships(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
         ) from e
-    

@@ -1,3 +1,4 @@
+"""Modules for pydantic dependency and optional"""
 from typing import Optional
 
 from pydantic import BaseModel

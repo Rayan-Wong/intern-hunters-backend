@@ -1,10 +1,10 @@
+"""Modules for boto3 and its dependencies"""
 import io
 import uuid
 
 import aioboto3
 from aiofiles import open as async_open
 import aiofiles.os as os
-from pathlib import Path
 
 from app.exceptions.internship_listings_exceptions import R2Down
 from app.exceptions.resume_creator_exceptions import CacheFail
@@ -42,11 +42,11 @@ class R2:
             raise CacheFail from e
         except Exception as e:
             raise R2Down from e
-    
+
     async def download_resume(
         self,
         user_id: uuid.UUID
-    ) -> io.BytesIO: 
+    ) -> io.BytesIO:
         try:
             # check local cache first
             path = self.settings.local_cache_dir + f"/resumes/resume_{user_id}.pdf"
@@ -70,7 +70,7 @@ class R2:
                 return file
         except Exception as e:
             raise R2Down from e
-        
+
     async def __cache(self, file: io.BytesIO, user_id: uuid.UUID):
         path = self.settings.local_cache_dir + f"/resumes/resume_{user_id}"
         try:

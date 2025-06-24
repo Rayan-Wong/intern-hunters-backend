@@ -7,8 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from .api import routes_auth, routes_applications, routes_internship_listings, routes_resume_creator
 from .openapi import TAGS_METADATA, DESCRIPTION
 
-import app.core.process_pool as pool
-
 # currently not in use since we are not using spaCy anymore
 # @asynccontextmanager
 # async def lifespan(app: FastAPI):
