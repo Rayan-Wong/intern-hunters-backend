@@ -139,12 +139,12 @@ async def modify_application(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=INVALID_APPPLICATION
-        ) from InvalidApplication
-    except NoApplicationFound:
+        ) from e
+    except NoApplicationFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=APPLICATION_NOT_FOUND
-        ) from NoApplicationFound
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

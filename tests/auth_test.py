@@ -298,7 +298,12 @@ async def test_invalid_session_token(client: AsyncClient, good_user: UserTest, e
     assert result.json()["detail"] == "Invalid session token"
 
 @pytest.mark.asyncio
-async def test_expired_session_token(client: AsyncClient, good_user: UserTest, expired_token: str, expired_session_token: str):
+async def test_expired_session_token(
+    client: AsyncClient,
+    good_user: UserTest,
+    expired_token: str,
+    expired_session_token: str
+):
     """Tests if expired session token returns error 401"""
     # first login to get jwt and session tokn
     res1 = await client.post("/api/login",
@@ -332,7 +337,12 @@ async def test_expired_session_token(client: AsyncClient, good_user: UserTest, e
     assert result.json()["detail"] == "Expired token"
 
 @pytest.mark.asyncio
-async def test_wrong_account_session_token(client: AsyncClient, good_user: UserTest, expired_token: str, no_account_session_token: str):
+async def test_wrong_account_session_token(
+    client: AsyncClient,
+    good_user: UserTest,
+    expired_token: str,
+    no_account_session_token: str
+):
     """Tests if wrong session token returns error 401"""
     # first login to get jwt and session tokn
     res1 = await client.post("/api/login",
@@ -379,6 +389,7 @@ async def test_logout(client: AsyncClient, good_user: UserTest):
 
 @pytest.mark.asyncio
 async def test_invalid_logout(client: AsyncClient, no_account_token: str):
+    """Tests if logging out with an invalid JWT fails"""
     response = await client.post("/api/logout", headers={
         "Authorization": f"Bearer {no_account_token}"  
     })

@@ -34,7 +34,7 @@ class UserApplications:
     async def create_application(self, application: UserApplicationCreate, id_user: uuid.UUID):
         """Creates user application"""
         if application.action_deadline:
-            application.action_deadline.replace(tzinfo=None) 
+            application.action_deadline.replace(tzinfo=None)
         user_application = UserApplication(
             user_id=id_user,
             company_name=application.company_name,

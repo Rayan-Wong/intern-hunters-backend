@@ -1,24 +1,24 @@
-import io
-
+"""Modules for Google gemini and its dependencies, role list to select roles, schemas for gemini response"""
 from google import genai
 from google.genai import types
 
 from app.workers.internship_roles import ROLE_LIST
 from app.core.config import get_settings
 from app.exceptions.internship_listings_exceptions import GeminiDown
-from app.schemas.gemini import Opinion, Comments
+from app.schemas.gemini import Opinion
 from app.schemas.resume_editor import Resume
 
 class GeminiAPI:
+    """Gemini API Class"""
     def __init__(self, api_key):
         """Initialises gemini client"""
         self.client = genai.Client(api_key=api_key)
-    
+
     async def __generate_content(self, prompt: str, file: bytes, config_schema):
         """Main response function"""
         try:
             response = await self.client.aio.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash",
                 contents=[
                     types.Part.from_bytes(
                         data=file,
@@ -33,10 +33,10 @@ class GeminiAPI:
             )
             if config_schema == str:
                 return response.text.strip('"') # thanks google for adding extra quotes
-            return response.text 
+            return response.text
         except Exception as e:
             raise GeminiDown from e
-    
+
     async def improve_resume(self, file: bytes):
         """Generates comments on how to improve a given resume"""
         prompt = """You are an expert technical recruiter and career coach with 10+ years of experience placing candidates at top-tier tech firms (e.g., Google, Amazon, Meta, startups, and enterprise software companies).
@@ -53,7 +53,7 @@ class GeminiAPI:
 
                     Finally, summarize what kind of roles or companies this resume would most likely appeal to."""
         return await self.__generate_content(prompt=prompt, file=file, config_schema=Opinion)
-    
+
     async def get_preference(self, file: bytes):
         """Predicts internship preference from a given resume"""
         prompt = f"""You are an expert career advisor and recruiter with deep knowledge of internship roles in the tech industry.
@@ -65,7 +65,7 @@ class GeminiAPI:
         {ROLE_LIST}
         """
         return await self.__generate_content(prompt=prompt, file=file, config_schema=str)
-    
+
     async def parse_by_section(self, file: bytes):
         """Parses resume by section"""
         prompt = f"""
@@ -120,5 +120,6 @@ class GeminiAPI:
         return await self.__generate_content(prompt=prompt, file=file, config_schema=Resume)
 
 def get_gemini_client():
+    """Creates gemini client, to be chained with its public method"""
     settings = get_settings()
     return GeminiAPI(api_key=settings.gemini_api_key)
