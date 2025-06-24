@@ -135,7 +135,7 @@ async def modify_application(
         user_application = UserApplications(db)
         new_application = await user_application.modify_application(old_application, user_id)
         return new_application
-    except InvalidApplication:
+    except InvalidApplication as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=INVALID_APPPLICATION
