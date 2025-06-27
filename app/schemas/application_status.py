@@ -5,12 +5,21 @@ import enum
 
 from pydantic import BaseModel, ConfigDict
 
+class ApplicationStatusEnum(str, enum.Enum):
+    """Enum for possible application status"""
+    APPLIED = "Applied"
+    INTERVIEW = "Interview"
+    PENDING_RESULT = "Pending"
+    OFFERED = "Offered"
+    REJECTED = "Rejected"
+    ACCEPTED = "Accepted"
+
 class UserApplicationBase(BaseModel):
     """Base schema of a user application"""
     company_name: str
     role_name: str
     location: str
-    status: str
+    status: ApplicationStatusEnum
     action_deadline: Optional[datetime] = None
     notes: Optional[str] = None
 
@@ -26,15 +35,6 @@ class UserApplicationModify(UserApplicationBase):
     """Schema of what is needed to modify a user application
     Rationale: Frontend will send the entire user application back"""
     id: int
-
-class ApplicationStatusEnum(str, enum.Enum):
-    """Enum for possible application status"""
-    APPLIED = "Applied"
-    INTERVIEW = "Interview"
-    PENDING_RESULT = "Pending"
-    OFFERED = "Offered"
-    REJECTED = "Rejected"
-    ACCEPTED = "Accepted"
 
 class ApplicationStatusCounts(BaseModel):
     applied: int
