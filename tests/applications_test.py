@@ -69,7 +69,7 @@ async def test_create_invalid_application(client: AsyncClient, get_user_token: s
     result = await client.post("/api/application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
-    assert result.status_code == status.HTTP_400_BAD_REQUEST
+    assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 @pytest.mark.asyncio
 async def test_get_application(client: AsyncClient, get_user_token: str):
@@ -138,7 +138,7 @@ async def test_modify_application_badly(client: AsyncClient, get_user_token: str
     result = await client.put("/api/application", json=application.model_dump(), headers={
         "Authorization": f"Bearer {get_user_token}"
     })
-    assert result.status_code == status.HTTP_400_BAD_REQUEST
+    assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 @pytest.mark.asyncio
 async def test_modify_wrong_application(client: AsyncClient, get_user_token: str):
