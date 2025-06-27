@@ -1,21 +1,12 @@
 """Modules relevant to store a user's application"""
 from datetime import datetime, timezone
 import uuid
-import enum
 
 from sqlalchemy import Uuid, ForeignKey, DateTime, Integer, Enum as SQLAEnum
 from sqlalchemy.orm import Mapped, mapped_column
+from app.schemas.application_status import ApplicationStatusEnum
 
 from .base import Base
-
-class ApplicationStatusEnum(str, enum.Enum):
-    """Enum for possible application status"""
-    APPLIED = "Applied"
-    INTERVIEW = "Interview"
-    PENDING_RESULT = "Pending Result"
-    OFFERED = "Offered"
-    REJECTED = "Rejected"
-    ACCEPTED = "Accepted"
 
 class UserApplication(Base):
     """Model of how a user application is stored"""

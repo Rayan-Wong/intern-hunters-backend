@@ -10,7 +10,8 @@ from app.dependencies.security import verify_jwt
 from app.schemas.application_status import (
     UserApplicationCreate,
     UserApplicationModify,
-    GetUserApplication
+    GetUserApplication,
+    ApplicationStatusCounts
 )
 from app.db.database import get_session
 from app.exceptions.application_exceptions import NoApplicationFound, InvalidApplication
@@ -170,6 +171,26 @@ async def delete_application(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=APPLICATION_NOT_FOUND
         ) from NoApplicationFound
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=SOMETHING_WRONG
+        ) from e
+
+@router.get("/application_stats",
+    tags=["application"],
+    responses=BAD_JWT,
+    response_model=ApplicationStatusCounts
+)
+async def get_application_stats(
+    user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
+    db: Annotated[AsyncSession, Depends(get_session)]
+):
+    """Returns counts of user application of each status and the total count"""
+    try:
+        user_application = UserApplications(db)
+        result = await user_application.get_statistics(user_id)
+        return result
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
