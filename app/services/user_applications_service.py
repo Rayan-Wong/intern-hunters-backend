@@ -1,8 +1,9 @@
 """Module dependencies for SQLAlchemy, user id, models and schemas for user applications"""
 import uuid
+from collections import defaultdict
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, asc
+from sqlalchemy import select, and_, asc, func
 from sqlalchemy.exc import NoResultFound, StatementError
 
 from app.models.application_status import UserApplication
@@ -10,7 +11,9 @@ from app.schemas.application_status import (
     UserApplicationBase,
     UserApplicationCreate,
     GetUserApplication,
-    UserApplicationModify
+    UserApplicationModify,
+    ApplicationStatusEnum,
+    ApplicationStatusCounts
 )
 from app.exceptions.application_exceptions import NoApplicationFound, InvalidApplication
 
@@ -150,6 +153,27 @@ class UserApplications:
             # it because it means making two transactions
             await self.__db.rollback()
             raise NoApplicationFound from NoResultFound
+        except Exception as e:
+            await self.__db.rollback()
+            raise e
+
+    async def get_statistics(self, user_id: uuid.UUID):
+        """Gets counts of each application status"""
+        try:
+            stmt = (
+                    select(UserApplication.status, func.count())
+                    .where(UserApplication.user_id == user_id)
+                    .group_by(UserApplication.status)
+                )
+            result = await self.__db.execute(stmt)
+            rows = result.all()
+            raw_counts = defaultdict(int, {status: count for status, count in rows}) # ensures 0 if a status is not retrieved
+            application_stats = {
+                status.value.lower(): raw_counts[status.value] for status in ApplicationStatusEnum
+            }
+            total = sum(application_stats.values())
+            application_stats["total"] = total
+            return ApplicationStatusCounts.model_validate(application_stats)
         except Exception as e:
             await self.__db.rollback()
             raise e

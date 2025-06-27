@@ -24,6 +24,15 @@ class UserApplicationModify(UserApplication):
     id: int
 
 @pytest.mark.asyncio
+async def test_get_initial_application_stats(client: AsyncClient, get_user_token: str):
+    """Tests if initialised user has 0 applications"""
+    result = await client.get("/api/application_stats",
+        headers={"Authorization": f"Bearer {get_user_token}"}
+    )
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json()["total"] == 0
+
+@pytest.mark.asyncio
 async def test_create_application(client: AsyncClient, get_user_token: str):
     """Tests if an application is successfully created"""
     application = UserApplication(
@@ -37,6 +46,16 @@ async def test_create_application(client: AsyncClient, get_user_token: str):
     })
     assert result.status_code == status.HTTP_200_OK
     assert result.json()["company_name"] == "Skibidi"
+
+@pytest.mark.asyncio
+async def test_get_application_stats(client: AsyncClient, get_user_token: str):
+    """Tests if  user now has 1 application"""
+    result = await client.get("/api/application_stats",
+        headers={"Authorization": f"Bearer {get_user_token}"}
+    )
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json()["total"] == 1
+    assert result.json()["applied"] == 1
 
 @pytest.mark.asyncio
 async def test_create_invalid_application(client: AsyncClient, get_user_token: str):
@@ -173,27 +192,29 @@ async def test_get_all_deadlines(client: AsyncClient, get_user_token: str):
         status="Interview",
         action_deadline=datetime.now(timezone.utc)+timedelta(days=3)
     )
-    await client.post(
+    check1 = await client.post(
         "/api/application",
         json=jsonable_encoder(application1.model_dump()),
         headers={
             "Authorization": f"Bearer {get_user_token}"
         }
     )
+    assert check1.status_code == status.HTTP_200_OK
     application2 = UserApplication(
         company_name="Melvin",
         role_name="Gurt",
         location="Yo",
-        status="Interview",
+        status="Offered",
         action_deadline=datetime.now(timezone.utc)+timedelta(days=2)
     )
-    await client.post(
+    check2 = await client.post(
         "/api/application",
         json=jsonable_encoder(application2.model_dump()),
         headers={
             "Authorization": f"Bearer {get_user_token}"
         }
     )
+    assert check2.status_code == status.HTTP_200_OK
     result = await client.get("/api/all_deadlines",
         headers={"Authorization": f"Bearer {get_user_token}"}
     )
@@ -201,3 +222,14 @@ async def test_get_all_deadlines(client: AsyncClient, get_user_token: str):
     assert result.json()
     first_result = result.json()[0]
     assert first_result["company_name"] == "Melvin"
+
+@pytest.mark.asyncio
+async def test_get_multiple_application_stats(client: AsyncClient, get_user_token: str):
+    """Tests if user now has 2 applications"""
+    result = await client.get("/api/application_stats",
+        headers={"Authorization": f"Bearer {get_user_token}"}
+    )
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json()["total"] == 2
+    assert result.json()["interview"] == 1
+    assert result.json()["offered"] == 1

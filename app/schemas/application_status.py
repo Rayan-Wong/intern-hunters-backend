@@ -1,6 +1,7 @@
 """Modules for pydantic dependency and optional, datetime"""
 from datetime import datetime
 from typing import Optional
+import enum
 
 from pydantic import BaseModel, ConfigDict
 
@@ -25,3 +26,21 @@ class UserApplicationModify(UserApplicationBase):
     """Schema of what is needed to modify a user application
     Rationale: Frontend will send the entire user application back"""
     id: int
+
+class ApplicationStatusEnum(str, enum.Enum):
+    """Enum for possible application status"""
+    APPLIED = "Applied"
+    INTERVIEW = "Interview"
+    PENDING_RESULT = "Pending"
+    OFFERED = "Offered"
+    REJECTED = "Rejected"
+    ACCEPTED = "Accepted"
+
+class ApplicationStatusCounts(BaseModel):
+    applied: int
+    interview: int
+    pending: int
+    offered: int
+    rejected: int
+    accepted: int
+    total: int
