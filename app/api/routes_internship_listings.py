@@ -31,6 +31,7 @@ SCRAPER_DEAD = "Internship scraper down"
 NEVER_UPLOADED_DETAILS = "User has not uploaded details"
 
 PAGE_LENGTH = 10
+DASHBOARD_LENGTH = 4 # the number of listings to show on dashboard
 ACTIVE_PORTALS = 2 # the number of working job portals
 
 router = APIRouter(prefix="/api")
@@ -95,6 +96,39 @@ async def get_internships(
         start = page * number_per_portal
         end = start + number_per_portal
         user_internships = await get_listings(db, user_id, start, end, industry)
+        return user_internships
+    except NotAddedDetails as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=NEVER_UPLOADED_DETAILS
+        ) from e
+    except ScraperDown as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=SCRAPER_DEAD
+        ) from e
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=SOMETHING_WRONG
+        ) from e
+
+@router.get("/less_internship_listings",
+    responses={**BAD_JWT, **SERVICE_DEAD, **NO_DETAILS},
+    response_model=list[InternshipListing],
+    tags=["internship_listings"]
+)
+async def get_internships(
+    db: Annotated[AsyncSession, Depends(get_session)],
+    user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
+):
+    """Gets lesser internship listings from users' preferences for dashboard use
+    Todo: possibly refactor to handle users who never uploaded resume"""
+    try:
+        number_per_portal = DASHBOARD_LENGTH // ACTIVE_PORTALS
+        start = 0
+        end = number_per_portal
+        user_internships = await get_listings(db, user_id, start, end)
         return user_internships
     except NotAddedDetails as e:
         raise HTTPException(
