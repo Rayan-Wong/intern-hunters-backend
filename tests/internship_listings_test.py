@@ -120,3 +120,12 @@ async def test_pagination(client: AsyncClient, get_user_token: str, mock_scraper
         })
     assert result2.status_code == status.HTTP_200_OK
     assert result2.json()[0]["company"] == "5"
+
+@pytest.mark.asyncio
+async def test_less_listings(client: AsyncClient, get_user_token: str):
+    """Tests if user with skills can get fewer internship listings for dashboard"""
+    result = await client.get("/api/less_internship_listings", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result.status_code == status.HTTP_200_OK
+    assert result.json() != []
