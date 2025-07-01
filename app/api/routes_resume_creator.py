@@ -30,7 +30,7 @@ RESUME_CREATOR_DOWN = "Resume Creator down"
 
 router = APIRouter(prefix="/api")
 
-@router.get("/get_parsing",
+@router.get("/parsing",
     responses={**BAD_JWT, **NO_DETAILS},
     response_model=Resume,
     tags=["resume_editor"],
@@ -54,7 +54,7 @@ async def get_parsing(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.get("/get_resume",
+@router.get("/resume",
     responses={**BAD_JWT, **NO_UPLOADED_RESUME, **SERVICE_DEAD, **FILE_DESCRIPTION},
     tags=["resume_editor"],
     response_class=StreamingResponse
@@ -94,7 +94,7 @@ async def get_resume(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.put("/edit_resume",
+@router.put("/resume",
     responses={**BAD_JWT, **NO_UPLOADED_RESUME, **SERVICE_DEAD, **FILE_DESCRIPTION},
     response_class=StreamingResponse,
     tags=["resume_editor"]
@@ -130,7 +130,7 @@ async def edit_resume(
             detail=SOMETHING_WRONG
         ) from e
 
-@router.post("/create_resume",
+@router.post("/resume",
     responses={**BAD_JWT, **SERVICE_DEAD, **FILE_DESCRIPTION},
     response_class=StreamingResponse,
     tags=["resume_editor"]
