@@ -36,7 +36,7 @@ async def test_no_listings(client: AsyncClient, get_user_token: str):
 @pytest.mark.asyncio
 async def test_no_resume(client: AsyncClient, get_user_token: str):
     """Tests if user without skills cannot get parsed resume"""
-    result = await client.get("/api/get_parsing", headers={
+    result = await client.get("/api/parsing", headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_400_BAD_REQUEST
@@ -45,7 +45,7 @@ async def test_no_resume(client: AsyncClient, get_user_token: str):
 @patch('app.services.resume_creator_service.R2')
 async def test_no_download_resume(mock_r2, client: AsyncClient, get_user_token: str, mock_boto3):
     """Tests if user without skills cannot download resume"""
-    result = await client.get("/api/get_resume", headers={
+    result = await client.get("/api/resume", headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_400_BAD_REQUEST
@@ -61,7 +61,7 @@ async def test_create_resume(
 ):
     """Tests if user can create resume"""
     mock_r2.return_value = mock_boto3
-    result = await client.post("/api/create_resume", json=get_resume_details, headers={
+    result = await client.post("/api/resume", json=get_resume_details, headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
@@ -70,7 +70,7 @@ async def test_create_resume(
 @pytest.mark.asyncio
 async def test_resume(client: AsyncClient, get_user_token: str):
     """Tests if user with skills can get parsed resume"""
-    result = await client.get("/api/get_parsing", headers={
+    result = await client.get("/api/parsing", headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
@@ -81,7 +81,7 @@ async def test_resume(client: AsyncClient, get_user_token: str):
 async def test_download_resume(mock_r2, client: AsyncClient, get_user_token: str, mock_boto3):
     """Tests if user without skills can download resume"""
     mock_r2.return_value = mock_boto3
-    result = await client.get("/api/get_resume", headers={
+    result = await client.get("/api/resume", headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
@@ -98,7 +98,7 @@ async def test_edit_resume(
 ):
     """Tests if user can create resume"""
     mock_r2.return_value = mock_boto3
-    result = await client.put("/api/edit_resume", json=get_resume_details, headers={
+    result = await client.put("/api/resume", json=get_resume_details, headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
