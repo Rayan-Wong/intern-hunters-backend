@@ -6,7 +6,9 @@ import io
 from fastapi import APIRouter, Depends, HTTPException, Response, status, UploadFile, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 import filetype
+from redis.asyncio import Redis
 
+from app.dependencies.redis_client import get_redis
 from app.schemas.internship_listings import InternshipListing
 from app.services.internship_listings_service import upload_resume, get_listings
 from app.dependencies.security import verify_jwt
@@ -87,15 +89,13 @@ async def upload_skills(
 async def get_internships(
     db: Annotated[AsyncSession, Depends(get_session)],
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
+    redis: Annotated[Redis, Depends(get_redis)],
     industry: str | None = None,
     page: Annotated[int | None, Query(ge=0)] = 0
 ):
     """Gets internship listings from users' preferences"""
     try:
-        number_per_portal = PAGE_LENGTH // ACTIVE_PORTALS
-        start = page * number_per_portal
-        end = start + number_per_portal
-        user_internships = await get_listings(db, user_id, start, end, industry)
+        user_internships = await get_listings(db, user_id, redis, ACTIVE_PORTALS, PAGE_LENGTH, industry, page)
         return user_internships
     except NotAddedDetails as e:
         raise HTTPException(
@@ -121,14 +121,12 @@ async def get_internships(
 async def get_internships(
     db: Annotated[AsyncSession, Depends(get_session)],
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
+    redis: Annotated[Redis, Depends(get_redis)]
 ):
     """Gets lesser internship listings from users' preferences for dashboard use
     Todo: possibly refactor to handle users who never uploaded resume"""
     try:
-        number_per_portal = DASHBOARD_LENGTH // ACTIVE_PORTALS
-        start = 0
-        end = number_per_portal
-        user_internships = await get_listings(db, user_id, start, end)
+        user_internships = await get_listings(db, user_id, redis, ACTIVE_PORTALS, DASHBOARD_LENGTH)
         return user_internships
     except NotAddedDetails as e:
         raise HTTPException(

@@ -1,7 +1,7 @@
 """Imports relevant modules needed to test and override db dependency"""
 import io
 import os
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import pytest_asyncio
@@ -11,8 +11,10 @@ from httpx import ASGITransport, AsyncClient
 from asgi_lifespan import LifespanManager
 
 from app.db.database import get_session
+from app.dependencies.redis_client import get_redis
 from app.main import app
 from app.models.base import Base
+from app.schemas.internship_listings import InternshipListing
 
 def get_jwt_secrets():
     """Returns JWT secret key"""
@@ -58,21 +60,59 @@ async def create_mock_db():
         if os.path.exists("test.db"):
             os.remove("test.db")
 
+class FakeRedis:
+    """Fake Redis"""
+    def __init__(self):
+        self.storage: list[InternshipListing] = []
+    
+    async def zrange(self, unused: str, start: int, end: int):
+        """Fake zrange()"""
+        end = min(end + 1, len(self.storage))
+        result = []
+        for i in range(start, end, 1):
+            result.append(self.storage[i].model_dump_json())
+        return result
+    
+    async def add(self, listings: list[InternshipListing]):
+        """Fake cache adding"""
+        self.storage.extend(listings)
+
+@pytest.fixture(scope="module")
+def mock_redis():
+    """Fixture to mock redis"""
+    return FakeRedis()
+
+@pytest.fixture(scope="module")
+def mock_cache():
+    """Fixture to mock caching"""
+    async def fake_add(fake_redis: FakeRedis, listings: list[InternshipListing], unused: str):
+        await fake_redis.add(listings)
+    
+    mock = AsyncMock(side_effect=fake_add)
+    with patch("app.services.internship_listings_service.cache", new=mock) as patcher:
+        yield mock
+
 @pytest_asyncio.fixture(scope="module")
-async def client(create_mock_db):
+async def client(create_mock_db, mock_redis):
     """Override db dependency"""
     async def override_session():
         """Wraps fixture in a non-fixture function to allow fixture 
         to be used as dependency injection"""
         async with create_mock_db as db:
             yield db
+    def override_redis():
+        """Wraps fixture in a non-fixture function to allow fixture 
+        to be used as dependency injection"""
+        yield mock_redis
     app.dependency_overrides[get_session] = override_session
+    app.dependency_overrides[get_redis] = override_redis
     async with LifespanManager(app) as manager:
         async with AsyncClient(
             transport=ASGITransport(app=manager.app),
             base_url="http://test"
         ) as client:
             yield client
+            app.dependency_overrides.clear()
 
 @pytest_asyncio.fixture
 async def get_user_token(client: AsyncClient, good_user: UserTest):
