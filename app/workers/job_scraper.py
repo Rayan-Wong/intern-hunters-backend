@@ -16,6 +16,8 @@ columns = [
     "description"
 ]
 
+MAX_HOURS = 24 * 7 * 3 # number of hours in a day * number of hours in a week * number of weeks in a month
+
 def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: str | None = None):
     """Calls JobSpy API to produce internship listings. start, end are used to simulate pagination,
     preferred_industry to specify industry of company"""
@@ -29,7 +31,7 @@ def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: 
             search_term=term,
             location="Singapore",
             results_wanted=end-start, # gross, to change,
-            hours_old=504, # 3 weeks
+            hours_old=MAX_HOURS, # 3 weeks
             offset=start,
             country_indeed="Singapore",
             linkedin_fetch_description=True,
