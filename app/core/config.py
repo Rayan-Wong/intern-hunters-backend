@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     r2_bucket_name: str
     r2_region: str
     local_cache_dir: Optional[str] = "."
+    redis_host: str
+    redis_port: str
 
 @lru_cache
 def get_settings():
