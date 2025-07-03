@@ -7,7 +7,7 @@ from fastapi import status
 from httpx import AsyncClient
 import pytest
 
-from tests.conftest import UserTest, client, get_user_token, mock_boto3
+from tests.conftest import UserTest, client, get_user_token, mock_boto3, mock_cache
 from app.schemas.internship_listings import InternshipListing
 
 @pytest.fixture
@@ -96,16 +96,18 @@ async def test_bad_resume(
     assert result.status_code == status.HTTP_400_BAD_REQUEST
 
 @pytest.mark.asyncio
-async def test_listings(client: AsyncClient, get_user_token: str):
+async def test_listings(client: AsyncClient, get_user_token: str, mock_scraper, mock_cache):
     """Tests if user with skills can get internship listings"""
     result = await client.get("/api/internship_listings", headers={
         "Authorization": f"Bearer {get_user_token}"
     })
+    mock_cache.assert_awaited()
     assert result.status_code == status.HTTP_200_OK
     assert result.json() != []
+    assert mock_scraper.called
 
 @pytest.mark.asyncio
-async def test_pagination(client: AsyncClient, get_user_token: str, mock_scraper):
+async def test_pagination(client: AsyncClient, get_user_token: str, mock_scraper, mock_cache):
     """Tests if pagination works"""
     result1 = await client.get("/api/internship_listings", headers={
         "Authorization": f"Bearer {get_user_token}"
@@ -113,6 +115,7 @@ async def test_pagination(client: AsyncClient, get_user_token: str, mock_scraper
     assert result1.status_code == status.HTTP_200_OK
     assert result1.json()[0]["company"] == "0"
     assert mock_scraper.called
+    mock_cache.assert_awaited()
     result2 = await client.get("/api/internship_listings",
         params={"page": 1},
         headers={
@@ -122,10 +125,11 @@ async def test_pagination(client: AsyncClient, get_user_token: str, mock_scraper
     assert result2.json()[0]["company"] == "5"
 
 @pytest.mark.asyncio
-async def test_less_listings(client: AsyncClient, get_user_token: str):
+async def test_less_listings(client: AsyncClient, get_user_token: str, mock_scraper, mock_cache):
     """Tests if user with skills can get fewer internship listings for dashboard"""
     result = await client.get("/api/less_internship_listings", headers={
         "Authorization": f"Bearer {get_user_token}"
     })
+    mock_cache.assert_awaited()
     assert result.status_code == status.HTTP_200_OK
     assert result.json() != []

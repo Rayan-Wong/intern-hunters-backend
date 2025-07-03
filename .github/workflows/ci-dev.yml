@@ -25,6 +25,8 @@ jobs:
       R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
       R2_BUCKET_URL: ${{ secrets.R2_BUCKET_URL }}
       R2_REGION: ${{ secrets.R2_REGION }}
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
+      REDIS_PORT: ${{ secrets.REDIS_PORT }}
     steps:
     - name: Checkout dev branch
       uses: actions/checkout@v4
