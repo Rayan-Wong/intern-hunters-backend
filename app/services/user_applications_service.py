@@ -16,6 +16,9 @@ from app.schemas.application_status import (
     ApplicationStatusCounts
 )
 from app.exceptions.application_exceptions import NoApplicationFound, InvalidApplication
+from app.core.logger import setup_custom_logger
+
+logger = setup_custom_logger(__name__)
 
 class UserApplications:
     """Service for user applications"""
@@ -51,13 +54,16 @@ class UserApplications:
             self.__db.add(user_application)
             await self.__db.commit()
             await self.__db.refresh(user_application)
+            logger.info(f"Internship application for {id_user} created.")
             return GetUserApplication.model_validate(user_application)
         except StatementError as e:
             # means given status input is not in enum
             await self.__db.rollback()
+            logger.warning(f"Application status {application.status} is not accepted.")
             raise InvalidApplication from e
         except Exception as e:
             await self.__db.rollback()
+            logger.error(f"Internship application for {id_user} has failed to be created.")
             raise e
 
     async def get_application(self, application_id: int, user_id: uuid.UUID):
@@ -68,14 +74,17 @@ class UserApplications:
             )
             result = await self.__db.execute(stmt)
             user_application = result.scalar_one()
+            logger.info(f"Internship application {application_id} for {user_id} retrieved.")
             return GetUserApplication.model_validate(user_application)
         except NoResultFound:
             # note that it is possible the user's id is invalid, but I dont want to separate
             # it because it means making two transactions
             await self.__db.rollback()
+            logger.warning(f"Internship application {application_id} for {user_id} cannot be found.")
             raise NoApplicationFound from NoResultFound
         except Exception as e:
             await self.__db.rollback()
+            logger.error(f"Internship application {application_id} for {user_id} failed to be retrieved.")
             raise e
 
     async def get_all_applications(self, user_id: uuid.UUID):
@@ -84,9 +93,11 @@ class UserApplications:
             stmt = select(UserApplication).where(user_id == UserApplication.user_id)
             result = await self.__db.execute(stmt)
             user_applications = result.scalars().all()
+            logger.info(f"Retrieved all {user_id}'s internship applications.")
             return user_applications
         except Exception as e:
             await self.__db.rollback()
+            logger.error(f"Failed to retrieve {user_id}'s internship applications.")
             raise e
 
     async def get_all_deadlines(self, user_id: uuid.UUID):
@@ -100,9 +111,11 @@ class UserApplications:
             ).order_by(asc(UserApplication.action_deadline))
             result = await self.__db.execute(stmt)
             user_applications = result.scalars().all()
+            logger.info(f"Retrieved all {user_id}'s internship applications with deadlines.")
             return user_applications
         except Exception as e:
             await self.__db.rollback()
+            logger.error(f"Failed to retrieve {user_id}'s internship applications with deadlines.")
             raise e
 
     async def modify_application(self,
@@ -125,6 +138,7 @@ class UserApplications:
             )
             await self.__db.commit()
             await self.__db.refresh(new_application)
+            logger.info(f"Internship application {incoming_application.id} for {user_id} updated.")
             return GetUserApplication.model_validate(new_application)
         except NoResultFound:
             # see above, could be possible uuid is invalid
@@ -133,9 +147,11 @@ class UserApplications:
         except StatementError as e:
         # means given status input is not in enum
             await self.__db.rollback()
+            logger.warning(f"Internship application {incoming_application.id} for {user_id} cannot be found.")
             raise InvalidApplication from e
         except Exception as e:
             await self.__db.rollback()
+            logger.error(f"Internship application {incoming_application.id} for {user_id} failed to be updated.")
             raise e
 
     async def delete_application(self, application_id: int, user_id: uuid.UUID):
@@ -148,13 +164,16 @@ class UserApplications:
             user_application = result.scalar_one()
             await self.__db.delete(user_application)
             await self.__db.commit()
+            logger.info(f"Internship application {application_id} for {user_id} deleted.")
         except NoResultFound:
             # note that it is possible the user's id is invalid, but I dont want to separate
             # it because it means making two transactions
             await self.__db.rollback()
+            logger.warning(f"Internship application {application_id} for {user_id} cannot be found.")
             raise NoApplicationFound from NoResultFound
         except Exception as e:
             await self.__db.rollback()
+            logger.error(f"Internship application {application_id} for {user_id} failed to be deleted.")
             raise e
 
     async def get_statistics(self, user_id: uuid.UUID):
@@ -173,7 +192,9 @@ class UserApplications:
             }
             total = sum(application_stats.values())
             application_stats["total"] = total
+            logger.info(f"Internship application stats for {user_id} retrieved.")
             return ApplicationStatusCounts.model_validate(application_stats)
         except Exception as e:
             await self.__db.rollback()
+            logger.error(f"Internship application stats for {user_id} failed to be retrieved.")
             raise e
