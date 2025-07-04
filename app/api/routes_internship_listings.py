@@ -24,6 +24,9 @@ from app.openapi import (
     SERVICE_DEAD,
     NO_DETAILS,
 )
+from app.core.logger import setup_custom_logger
+
+logger = setup_custom_logger(__name__)
 
 NOT_A_PDF = "Not a pdf"
 SOMETHING_WRONG = "Something wrong"
@@ -76,6 +79,7 @@ async def upload_skills(
             detail=R2_DOWN
         ) from e
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -108,6 +112,7 @@ async def get_internships(
             detail=SCRAPER_DEAD
         ) from e
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -139,6 +144,7 @@ async def get_internships(
             detail=SCRAPER_DEAD
         ) from e
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
