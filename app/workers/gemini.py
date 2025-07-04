@@ -7,6 +7,10 @@ from app.core.config import get_settings
 from app.exceptions.internship_listings_exceptions import GeminiDown
 from app.schemas.gemini import Opinion
 from app.schemas.resume_editor import Resume
+from app.core.timer import timed
+from app.core.logger import setup_custom_logger
+
+logger = setup_custom_logger(__name__)
 
 class GeminiAPI:
     """Gemini API Class"""
@@ -14,6 +18,7 @@ class GeminiAPI:
         """Initialises gemini client"""
         self.client = genai.Client(api_key=api_key)
 
+    @timed("Gemini Response")
     async def __generate_content(self, prompt: str, file: bytes, config_schema):
         """Main response function"""
         try:
@@ -33,8 +38,10 @@ class GeminiAPI:
             )
             if config_schema == str:
                 return response.text.strip('"') # thanks google for adding extra quotes
+            logger.info("Gemini successfully responded")
             return response.text
         except Exception as e:
+            logger.error("Gemini failed to respond.")
             raise GeminiDown from e
 
     async def improve_resume(self, file: bytes):

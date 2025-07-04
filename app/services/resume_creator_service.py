@@ -16,6 +16,9 @@ from app.workers.gemini import get_gemini_client
 from app.exceptions.internship_listings_exceptions import NotAddedDetails
 from app.exceptions.resume_creator_exceptions import NotUploadedResume
 from app.schemas.resume_editor import Resume
+from app.core.logger import setup_custom_logger
+
+logger = setup_custom_logger(__name__)
 
 async def get_parsed(db: AsyncSession, user_id: uuid.UUID):
     """Fetches parsed user resume"""
@@ -23,10 +26,10 @@ async def get_parsed(db: AsyncSession, user_id: uuid.UUID):
         stmt = select(UserSkill).where(UserSkill.user_id == user_id)
         result = await db.execute(stmt)
         user = result.scalar_one()
+        logger.info(f"Parsed resume for {user_id} retrieved.")
         return Resume.model_validate(json.loads(user.parsed_resume))
     except NoResultFound:
         # user has not parsed his resume
-        await db.rollback()
         raise NotAddedDetails from NoResultFound
 
 async def fetch_resume(db: AsyncSession, user_id: uuid.UUID):
@@ -39,7 +42,6 @@ async def fetch_resume(db: AsyncSession, user_id: uuid.UUID):
             raise NotUploadedResume
         return await R2().download_resume(user_id)
     except Exception as e:
-        await db.rollback()
         raise e
 
 async def update_resume(db: AsyncSession, user_id: uuid.UUID, details: Resume):
@@ -53,6 +55,7 @@ async def update_resume(db: AsyncSession, user_id: uuid.UUID, details: Resume):
         user.parsed_resume = details.model_dump_json()
         await db.commit()
         await db.refresh(user)
+        logger.info(f"Parsed resume details for {user_id} successfully created.")
         return resume
     except Exception as e:
         await db.rollback()
@@ -79,6 +82,7 @@ async def make_resume(db: AsyncSession, user_id: uuid.UUID, details: Resume):
         stmt2 = update(User).where(User.id == user_id).values(has_uploaded=True)
         await db.execute(stmt2)
         await db.commit()
+        logger.info(f"Parsed resume details for {user_id} successfully created.")
         return resume
     except Exception as e:
         await db.rollback()

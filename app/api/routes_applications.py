@@ -20,6 +20,9 @@ from app.openapi import (
     APPLICATION_NOT_FOUND_RESPONSE,
     BAD_JWT
 )
+from app.core.logger import setup_custom_logger
+
+logger = setup_custom_logger(__name__)
 
 router = APIRouter(prefix="/api")
 
@@ -50,6 +53,7 @@ async def create_application(
             detail=INVALID_APPPLICATION
         ) from InvalidApplication
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -76,6 +80,7 @@ async def get_application(
             detail=APPLICATION_NOT_FOUND
         ) from NoApplicationFound
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -96,6 +101,7 @@ async def get_all_applications(
         applications = await user_application.get_all_applications(user_id)
         return applications
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -116,6 +122,7 @@ async def get_all_deadlines(
         applications = await user_application.get_all_deadlines(user_id)
         return applications
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -147,6 +154,7 @@ async def modify_application(
             detail=APPLICATION_NOT_FOUND
         ) from e
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -172,6 +180,7 @@ async def delete_application(
             detail=APPLICATION_NOT_FOUND
         ) from NoApplicationFound
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -192,6 +201,7 @@ async def get_application_stats(
         result = await user_application.get_statistics(user_id)
         return result
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG

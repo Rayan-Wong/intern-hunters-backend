@@ -19,6 +19,9 @@ from app.openapi import (
     FILE_DESCRIPTION,
     NO_UPLOADED_RESUME
 )
+from app.core.logger import setup_custom_logger
+
+logger = setup_custom_logger(__name__)
 
 SOMETHING_WRONG = "Something wrong"
 GEMINI_DOWN = "Gemini down"
@@ -49,6 +52,7 @@ async def get_parsing(
             detail=NEVER_UPLOADED_DETAILS
         ) from e
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -89,6 +93,7 @@ async def get_resume(
             detail=CACHE_DOWN
         ) from e
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -125,6 +130,7 @@ async def edit_resume(
             detail=RESUME_CREATOR_DOWN
         ) from e
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -166,6 +172,7 @@ async def create_resume(
             detail=RESUME_CREATOR_DOWN
         ) from e
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
