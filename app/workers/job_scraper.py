@@ -4,6 +4,10 @@ import numpy as np
 
 from app.schemas.internship_listings import InternshipListing
 from app.exceptions.internship_listings_exceptions import ScraperDown
+from app.core.timer import timed
+from app.core.logger import setup_custom_logger
+
+logger = setup_custom_logger(__name__)
 
 columns = [
     "site",
@@ -18,6 +22,7 @@ columns = [
 
 MAX_HOURS = 24 * 7 * 3 # number of hours in a day * number of hours in a week * number of weeks in a month
 
+@timed("Internship Scraper")
 def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: str | None = None):
     """Calls JobSpy API to produce internship listings. start, end are used to simulate pagination,
     preferred_industry to specify industry of company"""
@@ -26,6 +31,7 @@ def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: 
             term = f"{preferred_industry} {preference} (intern OR internship OR co-op OR 'summer intern' OR 'summer analyst')"
         else:
             term = f"{preference} (intern OR internship OR co-op OR 'summer intern' OR 'summer analyst')"
+        logger.info(f"Starting API call value: {start}, Ending API call value: {end}")
         jobs = scrape_jobs(
             site_name=["linkedin", "indeed"],
             search_term=term,
@@ -40,6 +46,7 @@ def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: 
         if jobs.empty:
             return [] # todo: decide what to do if no results
         result = jobs[columns].replace({np.nan: None}) # thanks numpy
+        logger.info(f"Internship Scraper found {len(result)} listings.")
         return [InternshipListing(**job) for job in result.to_dict("records")]
     except Exception as e:
         raise ScraperDown from e

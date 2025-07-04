@@ -17,6 +17,9 @@ from app.workers.gemini import get_gemini_client
 from app.workers.r2 import R2
 from app.exceptions.internship_listings_exceptions import NotAddedDetails
 from app.schemas.internship_listings import InternshipListing
+from app.core.logger import setup_custom_logger
+
+logger = setup_custom_logger(__name__)
 
 CACHE_EXPIRE = 60 * 60 * 24 # seconds in a min * mins in an hour* hours in a day
 
@@ -28,8 +31,11 @@ async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
 
     try:
         user_parsed_resume = await get_gemini_client().parse_by_section(file.getvalue())
+        logger.info(f"Resume for {user_id} parsed")
         user_preference = await get_gemini_client().get_preference(file.getvalue())
+        logger.info(f"Preference for {user_id} captured")
         await R2().upload_resume(file, user_id)
+        logger.info(f"Resume of {user_id} uploaded")
         # either create new row with user_id and skills if it doesn't exist,
         # or update it
         stmt1 = upsert(UserSkill).values({
@@ -47,6 +53,7 @@ async def upload_resume(db: AsyncSession, user_id: uuid.UUID, file: io.BytesIO):
         stmt2 = update(User).where(User.id == user_id).values(has_uploaded=True)
         await db.execute(stmt2)
         await db.commit()
+        logger.info(f"Parsed resume, role preference of {user_id} added to db and flagged for has_uploaded")
         return user_parsed_resume
     except Exception as e:
         raise e
@@ -65,23 +72,27 @@ async def get_listings(
         stmt = select(UserSkill).where(UserSkill.user_id == user_id)
         result = await db.execute(stmt)
         user = result.scalar_one()
+        logger.info((f"Beginning internship listing search for {user_id} on page {page}") + (f"for industry {industry}" if industry else ""))
         cache_start = page * cache_size
         cache_end = (page + 1) * cache_size
+        logger.info(f"Starting cache value: {cache_start}, Ending cache value: {cache_end}")
         raw_result = await redis.zrange(user.preference, cache_start, cache_end - 1)
         result = [InternshipListing(**json.loads(obj)) for obj in raw_result]
+        logger.info(f"Number of cache hits: {len(result)}")
         if len(result) != cache_size:
             api_start = (page * (cache_size // job_portals)) + (len(result) // job_portals)
             api_end = cache_end // job_portals
             api_result = await to_thread.run_sync(sync_scrape_jobs, user.preference, api_start, api_end, industry)
             await cache(redis, api_result, user.preference)
             result.extend(api_result)
+        logger.info(f"Total result size of {len(result)}")
         return result
     except NoResultFound:
         # user has not added preferences
-        await db.rollback()
+        logger.warning(f"{user_id} has not updated his preference")
         raise NotAddedDetails from NoResultFound
     except Exception as e:
-        await db.rollback()
+        logger.error(f"Internship listings for {user_id} failed to be retrieved.")
         raise e
 
 async def cache(r: Redis, listings: list[InternshipListing], preference: str):

@@ -26,6 +26,9 @@ from app.openapi import (
     BAD_REFRESH_TOKEN_RESPONSE,
     BAD_JWT
 )
+from app.core.logger import setup_custom_logger
+
+logger = setup_custom_logger(__name__)
 
 router = APIRouter(prefix="/api")
 
@@ -68,6 +71,7 @@ async def register_user(
             detail=EMAIL_ALREADY_EXISTS
         ) from DuplicateEmailError
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         ) from e
@@ -110,6 +114,7 @@ async def login_user(
             detail=PASSWORD_INCORRECT
         ) from WrongPasswordError
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
@@ -162,6 +167,7 @@ async def logout(
             detail=ACCOUNT_NOT_CREATED
         ) from NoAccountError
     except Exception as e:
+        logger.error(e)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
