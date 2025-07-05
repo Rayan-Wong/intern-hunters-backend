@@ -1,12 +1,13 @@
 import logging
+import sys
 
-def setup_custom_logger(name: str) -> logging.Logger:
+def setup_custom_logger(name: str):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
     # every logger needs a handler, either inherited from parent or their own
     if not logger.handlers:  # avoid duplicate handlers if called multiple times
-        handler = logging.StreamHandler()
+        handler = logging.StreamHandler(stream=sys.stdout)
         formatter = logging.Formatter(
             "%(asctime)s %(levelname)s %(name)s: %(message)s"
         )
