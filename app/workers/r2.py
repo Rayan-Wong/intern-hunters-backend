@@ -19,8 +19,8 @@ class R2:
         """Initialises boto3 session"""
         self.settings = get_settings()
         self.session = aioboto3.Session(
-            aws_access_key_id=self.settings.aws_access_key_id,
-            aws_secret_access_key=self.settings.aws_secret_access_key
+            aws_access_key_id=self.settings.r2_access_key_id,
+            aws_secret_access_key=self.settings.r2_secret_access_key
         )
 
     @timed("R2 Upload")
