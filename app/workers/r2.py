@@ -83,6 +83,7 @@ class R2:
             raise R2Down from e
 
     async def __cache(self, file: io.BytesIO, user_id: uuid.UUID):
+        await os.makedirs(self.settings.local_cache_dir + "/resumes", exist_ok=True)
         path = self.settings.local_cache_dir + f"/resumes/resume_{user_id}"
         try:
             async with async_open(path + ".tmp", "wb") as f:
