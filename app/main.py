@@ -42,4 +42,4 @@ app.include_router(routes_resume_creator.router)
 @app.get("/")
 async def root():
     """Endpoint to check if server is alive"""
-    return {"message": "ur mum"}
+    return {"message": "I LIVE!"}
