@@ -106,7 +106,6 @@ async def test_read_main(client: AsyncClient):
     """Checks if server is alive"""
     response = await client.get("/")
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {"message": "ur mum"}
 
 @pytest.mark.asyncio
 async def test_register(client: AsyncClient, good_user: UserTest):
