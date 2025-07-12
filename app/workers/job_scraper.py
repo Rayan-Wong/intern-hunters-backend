@@ -39,7 +39,7 @@ def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: 
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(
                 scrape_jobs,
-                site_name=["linkedin"],
+                site_name=["linkedin", "indeed"],
                 search_term=term,
                 location="Singapore",
                 results_wanted=end-start, # gross, to change,
