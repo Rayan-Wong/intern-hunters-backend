@@ -72,18 +72,20 @@ async def get_listings(
         stmt = select(UserSkill).where(UserSkill.user_id == user_id)
         result = await db.execute(stmt)
         user = result.scalar_one()
+        industry = industry.lower() if isinstance(industry, str) else industry
         logger.info((f"Beginning internship listing search for {user_id} on page {page}") + (f"for industry {industry}" if industry else ""))
         cache_start = page * cache_size
         cache_end = (page + 1) * cache_size
         logger.info(f"Starting cache value: {cache_start}, Ending cache value: {cache_end}")
-        raw_result = await redis.zrange(user.preference, cache_start, cache_end - 1)
+        key = user.preference + f"_industry" if industry else ""
+        raw_result = await redis.zrange(key, cache_start, cache_end - 1)
         result = [InternshipListing(**json.loads(obj)) for obj in raw_result]
         logger.info(f"Number of cache hits: {len(result)}")
         if len(result) != cache_size:
             api_start = (page * (cache_size // job_portals)) + (len(result) // job_portals)
             api_end = cache_end // job_portals
             api_result = await to_thread.run_sync(sync_scrape_jobs, user.preference, api_start, api_end, industry)
-            await cache(redis, api_result, user.preference)
+            await cache(redis, api_result, key)
             result.extend(api_result)
         logger.info(f"Total result size of {len(result)}")
         return result
@@ -95,9 +97,9 @@ async def get_listings(
         logger.error(f"Internship listings for {user_id} failed to be retrieved.")
         raise e
 
-async def cache(r: Redis, listings: list[InternshipListing], preference: str):
+async def cache(r: Redis, listings: list[InternshipListing], key: str):
     for res in listings:
-        score = await r.incr(f"{preference}_count")
-        await r.expire(f"{preference}_count", CACHE_EXPIRE, nx=True)
-        await r.zadd(f"{preference}", {res.model_dump_json(): score})
-        await r.expire(f"{preference}", CACHE_EXPIRE, nx=True)
+        score = await r.incr(f"{key}_count")
+        await r.expire(f"{key}_count", CACHE_EXPIRE, nx=True)
+        await r.zadd(f"{key}", {res.model_dump_json(): score})
+        await r.expire(f"{key}", CACHE_EXPIRE, nx=True)

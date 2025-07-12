@@ -122,7 +122,7 @@ async def test_pagination(client: AsyncClient, get_user_token: str, mock_scraper
         "Authorization": f"Bearer {get_user_token}"
         })
     assert result2.status_code == status.HTTP_200_OK
-    assert result2.json()[0]["company"] == "5"
+    assert result2.json()[0]["company"] == "10"
 
 @pytest.mark.asyncio
 async def test_less_listings(client: AsyncClient, get_user_token: str, mock_scraper, mock_cache):

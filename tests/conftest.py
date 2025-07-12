@@ -77,12 +77,12 @@ class FakeRedis:
         """Fake cache adding"""
         self.storage.extend(listings)
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def mock_redis():
     """Fixture to mock redis"""
     return FakeRedis()
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def mock_cache():
     """Fixture to mock caching"""
     async def fake_add(fake_redis: FakeRedis, listings: list[InternshipListing], unused: str):
@@ -92,7 +92,7 @@ def mock_cache():
     with patch("app.services.internship_listings_service.cache", new=mock) as patcher:
         yield mock
 
-@pytest_asyncio.fixture(scope="module")
+@pytest_asyncio.fixture(scope="function")
 async def client(create_mock_db, mock_redis):
     """Override db dependency"""
     async def override_session():
