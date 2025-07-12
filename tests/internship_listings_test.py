@@ -10,6 +10,9 @@ import pytest
 from tests.conftest import UserTest, client, get_user_token, mock_boto3, mock_cache
 from app.schemas.internship_listings import InternshipListing
 
+PAGE_RESULTS = 10
+ACTIVE_PORTALS = 2
+
 @pytest.fixture
 def mock_scraper():
     """Mock fixture to patch internship scraper API"""
@@ -122,7 +125,7 @@ async def test_pagination(client: AsyncClient, get_user_token: str, mock_scraper
         "Authorization": f"Bearer {get_user_token}"
         })
     assert result2.status_code == status.HTTP_200_OK
-    assert result2.json()[0]["company"] == "10"
+    assert result2.json()[0]["company"] == str(PAGE_RESULTS // ACTIVE_PORTALS)
 
 @pytest.mark.asyncio
 async def test_less_listings(client: AsyncClient, get_user_token: str, mock_scraper, mock_cache):
