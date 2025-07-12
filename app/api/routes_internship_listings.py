@@ -37,7 +37,7 @@ NEVER_UPLOADED_DETAILS = "User has not uploaded details"
 
 PAGE_LENGTH = 10
 DASHBOARD_LENGTH = 4 # the number of listings to show on dashboard
-ACTIVE_PORTALS = 1 # the number of working job portals
+ACTIVE_PORTALS = 2 # the number of working job portals
 
 router = APIRouter(prefix="/api")
 
