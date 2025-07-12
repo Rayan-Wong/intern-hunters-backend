@@ -251,7 +251,7 @@ async def test_session_token(client: AsyncClient, good_user: UserTest, expired_t
 
 @pytest.mark.asyncio
 async def test_no_session_token(client: AsyncClient, good_user: UserTest, expired_token: str):
-    """Tests if no session token returns error 401"""
+    """Tests if no session token returns error 422"""
     # first login to get jwt and session tokn
     res1 = await client.post("/api/login",
         json={"email": good_user.email,
@@ -266,9 +266,10 @@ async def test_no_session_token(client: AsyncClient, good_user: UserTest, expire
     })
     user_id = res2.json()
     old_token = expired_token(user_id)
+    client.cookies.clear()
     result = await client.post("/api/test_session_token", headers={
         "Authorization": f"Bearer {old_token}"
-    })
+    }, cookies=None)
     assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 @pytest.mark.asyncio
