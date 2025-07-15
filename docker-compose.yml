@@ -15,6 +15,8 @@ services:
       localstack:
         condition: service_healthy
     environment:
+      - JWT_SECRET_KEY=3706bff76da0fa9f749b7522220d5843e938af033ead132649a08694cfaafbfa
+      - REFRESH_TOKEN_SECRET_KEY=2dc528ee7bb7c83dd80c1381c3ba9bb5861b57a8a8c9c499a514c64ad26ee679
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/postgres
