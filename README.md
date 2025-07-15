@@ -1,29 +1,36 @@
 # intern-hunters-backend
-FastAPI on Python 3.12
+
+A backend service for **Intern Hunters** — a full-stack application that helps students track internship applications and discover new opportunities, featuring intelligent resume parsing, job scraping, and performance-optimised infrastructure.
+
+## Features
+
+- **RESTful API** built with FastAPI for CRUD operations
+- **Authentication** system with JWTs and refresh tokens for secure access
+- **Redis caching** with pagination and partial cache hits to reduce response times
+- **Asynchronous endpoints** with CPU-bound task offloading for scalability
+- **AI-driven resume parsing** using Google Gemini for structured data extraction
+- **AWS deployment**: ECR, ECS, RDS, ElastiCache in a custom VPC with security groups
+- **CI/CD pipeline** via GitHub Actions with OIDC role assumption for automated testing and deployment
+- **Dockerised development** environment using Docker Compose for consistency across machines
+- **Structured logging** and execution timing instrumentation for performance diagnostics
+- **Database migrations** managed by Alembic for version control
+
+## Tech Stack
+
+- **Language:** Python 3.12
+- **Framework:** FastAPI
+- **Database:** PostgreSQL
+- **Object Storage:** Cloudflare R2
+- **Cache:** Redis, ElastiCache
+- **AI Services:** Google Gemini
+- **DevOps:** Docker, Docker Compose, GitHub Actions, AWS ECR/ECS/RDS/VPC/IAM
+- **Migrations:** Alembic
 
 ## 🚀 How to Run
 
-0. Generate the following secrets yourself to put in the .env
-    1. DATABASE_URL
-        * You MUST supply an async engine to use your db with (app currently works on postgresql and sqlite)
-    2. SYNC_DATABASE_URL
-        * You MUST supply the sync engine version of the db you are using for alembic
-    3. JWT_SECRET_KEY
-        * Use a command like `openssl rand -hex 32` on CLI etc
-    4. REFRESH_TOKEN_SECRET_KEY
-        * See sub point for 3.
-    5. AWS_ACCESS_KEY_ID
-        * Note this is used for boto3, so you can use other services like R2
-    6. AWS_SECRET_ACCESS_KEY
-        * See sub point for 5.
-    7. R2_BUCKET_URL
-        * You can also use S3 bucket urls
-    8. R2_BUCKET_NAME
-        * See sub point for 7.
-    9. R2_REGION
-        * See sub point for 7.
-1. Put .env in same folder as dev.py
-2. Install dependencies with `pip install -r requirements.txt`
-3. Run `alembic upgrade head`
-4. Start the development server using `python dev.py`. 
-
+0. Generate the following secret and store it in a `.env` file:
+   - `GEMINI_API_KEY`: Your Google Gemini API key
+1. Place the `.env` file in the same folder as `dev.py`.
+2. Build and start the container:
+   ```bash
+   docker compose up --build -d
