@@ -9,7 +9,7 @@ services:
     env_file: .env
     depends_on:
       redis:
-        condition: service_started
+        condition: service_healthy
       db:
         condition: service_healthy
       localstack:
@@ -43,13 +43,18 @@ services:
           target: requirements.txt
 
   redis:
-    image: redis:8.0.2
+    image: redis:7.4.5
     container_name: redis
     ports:
     - 6379:6379
     volumes: 
      - redis-data:/data
-    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "notice"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     restart: unless-stopped
 
   db:
