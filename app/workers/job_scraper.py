@@ -58,6 +58,6 @@ def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: 
             return [] # todo: decide what to do if no results
         result = jobs[columns].replace({np.nan: None}) # thanks numpy
         logger.info(f"Internship Scraper found {len(result)} listings.")
-        return [InternshipListing(**job) for job in result.to_dict("records")]
+        return list(dict.fromkeys(InternshipListing(**job) for job in result.to_dict("records")))
     except Exception as e:
         raise ScraperDown from e

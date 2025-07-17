@@ -73,20 +73,21 @@ async def get_listings(
         result = await db.execute(stmt)
         user = result.scalar_one()
         industry = industry.lower() if isinstance(industry, str) else industry
-        logger.info((f"Beginning internship listing search for {user_id} on page {page}") + (f"for industry {industry}" if industry else ""))
+        logger.info((f"Beginning internship listing search for {user_id} on page {page}") + (f" for industry {industry}" if industry else ""))
         cache_start = page * cache_size
         cache_end = (page + 1) * cache_size
         logger.info(f"Starting cache value: {cache_start}, Ending cache value: {cache_end}")
-        key = user.preference + f"_industry" if industry else ""
+        key = user.preference + f"_{industry}" if industry else ""
+        logger.info(f"Using redis key {key}")
         raw_result = await redis.zrange(key, cache_start, cache_end - 1)
-        result = [InternshipListing(**json.loads(obj)) for obj in raw_result]
+        result = list(dict.fromkeys(InternshipListing(**json.loads(obj)) for obj in raw_result))
         logger.info(f"Number of cache hits: {len(result)}")
         if len(result) != cache_size:
             api_start = (page * (cache_size // job_portals)) + (len(result) // job_portals)
             api_end = cache_end // job_portals
             api_result = await to_thread.run_sync(sync_scrape_jobs, user.preference, api_start, api_end, industry)
             await cache(redis, api_result, key)
-            result.extend(api_result)
+            result = list(dict.fromkeys(result + api_result))
         logger.info(f"Total result size of {len(result)}")
         return result
     except NoResultFound:

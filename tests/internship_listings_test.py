@@ -17,15 +17,19 @@ ACTIVE_PORTALS = 2
 def mock_scraper():
     """Mock fixture to patch internship scraper API"""
     def fake_scraper(preference: str, start: int, end: int, industry: str | None):
-        listings = [InternshipListing(
-                company = f"{i}",
-                job_url="Lorem",
-                title="Ipsum",
-                description="Lol",
-                date_posted=None,
-                is_remote=True,
-                company_industry=None
-            ) for i in range(start, end, 1)]
+        listings = []
+        for i in range(start, end, 1):
+            listings.append(
+                InternshipListing(
+                    company = f"{i}",
+                    job_url="Lorem",
+                    title="Ipsum",
+                    description="Lol",
+                    date_posted=None,
+                    is_remote=True,
+                    company_industry=None
+                )
+            )
         return listings
     with patch(
         "app.services.internship_listings_service.sync_scrape_jobs",

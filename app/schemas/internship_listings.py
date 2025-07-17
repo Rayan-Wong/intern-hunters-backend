@@ -2,7 +2,7 @@
 import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class InternshipListing(BaseModel):
     """Schema of how an internship listing is returned"""
@@ -14,3 +14,5 @@ class InternshipListing(BaseModel):
     is_remote: Optional[bool] = None
     company_industry: Optional[str] = None
     description: str
+
+    model_config = ConfigDict(frozen=True)
