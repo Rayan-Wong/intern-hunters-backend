@@ -37,6 +37,6 @@ jobs:
     - name: Re-deploy ECS service
       run: |
         aws ecs update-service \
-        --cluster arn:aws:ecs:ap-southeast-1:368339042148:cluster/orbital_ii \
-        --service arn:aws:ecs:ap-southeast-1:368339042148:service/orbital_ii/orbital-backend-service-mi60tlsm \
+        --cluster arn:aws:ecs:ap-southeast-1:368339042148:cluster/orbital-ii \
+        --service arn:aws:ecs:ap-southeast-1:368339042148:service/orbital-ii/orbital-backend-service-omkwionq \
         --force-new-deployment
