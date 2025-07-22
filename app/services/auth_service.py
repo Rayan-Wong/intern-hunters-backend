@@ -15,6 +15,7 @@ from app.models.user import User
 from app.exceptions.auth_exceptions import DuplicateEmailError, WrongPasswordError, NoAccountError
 from app.schemas.user import UserCreate, UserLogin
 from app.core.logger import setup_custom_logger
+from app.core.timer import timed
 
 logger = setup_custom_logger(__name__)
 
@@ -29,6 +30,7 @@ class UserAuth:
         self.__pwd_context = PasswordHasher()
         self.__db = db
 
+    @timed("User registration")
     async def register(self, user_in: UserCreate):
         """Register user and return user id"""
         logger.info(f"Creating account for {user_in.name}")
@@ -53,6 +55,7 @@ class UserAuth:
             logger.error(f"Account for {user_in.name} not able to be created.")
             raise e
 
+    @timed("User login")
     async def login(self, user_in: UserLogin):
         """Log user in and returns their user id"""
         try:
@@ -77,6 +80,7 @@ class UserAuth:
             logger.error(f"{user_in.email} was unable to log in.")
             raise e
 
+    @timed("User logout")
     async def log_out(self, user_id: uuid.UUID):
         """Logs user out and returns None (idk)"""
         try:

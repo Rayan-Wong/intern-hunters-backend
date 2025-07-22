@@ -17,6 +17,7 @@ from app.schemas.application_status import (
 )
 from app.exceptions.application_exceptions import NoApplicationFound, InvalidApplication
 from app.core.logger import setup_custom_logger
+from app.core.timer import timed
 
 logger = setup_custom_logger(__name__)
 
@@ -37,6 +38,7 @@ class UserApplications:
             setattr(output, "action_deadline", app_input.action_deadline.replace(tzinfo=None))
         return output
 
+    @timed("Application creation")
     async def create_application(self, application: UserApplicationCreate, id_user: uuid.UUID):
         """Creates user application"""
         if application.action_deadline:
@@ -66,6 +68,7 @@ class UserApplications:
             logger.error(f"Internship application for {id_user} has failed to be created.")
             raise e
 
+    @timed("Application retrieval")
     async def get_application(self, application_id: int, user_id: uuid.UUID):
         """Gets a user's application given application id"""
         try:
@@ -87,6 +90,7 @@ class UserApplications:
             logger.error(f"Internship application {application_id} for {user_id} failed to be retrieved.")
             raise e
 
+    @timed("Fetching all user applications")
     async def get_all_applications(self, user_id: uuid.UUID):
         """Gets all user's applications"""
         try:
@@ -100,6 +104,7 @@ class UserApplications:
             logger.error(f"Failed to retrieve {user_id}'s internship applications.")
             raise e
 
+    @timed("Fetching all user applications with deadlines")
     async def get_all_deadlines(self, user_id: uuid.UUID):
         """Gets all user's deadlines, in ascending order"""
         try:
@@ -118,6 +123,7 @@ class UserApplications:
             logger.error(f"Failed to retrieve {user_id}'s internship applications with deadlines.")
             raise e
 
+    @timed("Modifying application")
     async def modify_application(self,
         incoming_application: UserApplicationModify,
         user_id: uuid.UUID
@@ -154,6 +160,7 @@ class UserApplications:
             logger.error(f"Internship application {incoming_application.id} for {user_id} failed to be updated.")
             raise e
 
+    @timed("Deleting application")
     async def delete_application(self, application_id: int, user_id: uuid.UUID):
         """Gets a user's application given application id"""
         try:
@@ -176,6 +183,7 @@ class UserApplications:
             logger.error(f"Internship application {application_id} for {user_id} failed to be deleted.")
             raise e
 
+    @timed("Application statistics retrieval")
     async def get_statistics(self, user_id: uuid.UUID):
         """Gets counts of each application status"""
         try:

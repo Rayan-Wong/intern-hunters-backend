@@ -27,6 +27,7 @@ from app.openapi import (
     BAD_JWT
 )
 from app.core.logger import setup_custom_logger
+from app.core.timer import timed
 
 logger = setup_custom_logger(__name__)
 
@@ -120,6 +121,7 @@ async def login_user(
             detail=SOMETHING_WRONG
         ) from e
 
+@timed("Token refreshing")
 @router.post("/token",
     tags=["refresh_token"],
     response_model=UserToken,
