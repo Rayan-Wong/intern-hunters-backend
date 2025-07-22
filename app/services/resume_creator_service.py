@@ -17,9 +17,11 @@ from app.exceptions.internship_listings_exceptions import NotAddedDetails
 from app.exceptions.resume_creator_exceptions import NotUploadedResume
 from app.schemas.resume_editor import Resume
 from app.core.logger import setup_custom_logger
+from app.core.timer import timed
 
 logger = setup_custom_logger(__name__)
 
+@timed("Parsed resume")
 async def get_parsed(db: AsyncSession, user_id: uuid.UUID):
     """Fetches parsed user resume"""
     try:

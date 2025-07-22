@@ -77,7 +77,7 @@ async def get_listings(
         cache_start = page * cache_size
         cache_end = (page + 1) * cache_size
         logger.info(f"Starting cache value: {cache_start}, Ending cache value: {cache_end}")
-        key = user.preference + f"_{industry}" if industry else ""
+        key = user.preference + (f"_{industry}" if industry else "")
         logger.info(f"Using redis key {key}")
         raw_result = await redis.zrange(key, cache_start, cache_end - 1)
         result = list(dict.fromkeys(InternshipListing(**json.loads(obj)) for obj in raw_result))
