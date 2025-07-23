@@ -12,7 +12,7 @@ class Education(BaseModel):
     end_date: str
     gpa: Optional[str] = None
     relevant_coursework: Optional[str] = None
-    activities: Optional[str] = None
+    activities: Optional[list[str]] = None
 
 class Experience(BaseModel):
     """Schema for resume past experience"""
