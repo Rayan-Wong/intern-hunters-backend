@@ -132,10 +132,10 @@
         \ResumeSubItem{ {GPA} }{ {{ edu.gpa }} }
         {% endif %}
         {% if edu.relevant_coursework %}
-        \ResumeSubItem{ {Relevant Coursework} }{ {{ edu.relevant_coursework }} }
+        \ResumeSubItem{\hspace*{0.3em}Relevant Coursework}{ {{ edu.relevant_coursework[0] }}{% for course in edu.relevant_coursework[1:] %}\\{\hspace*{12.25em}{{ course }}}{% endfor %} }
         {% endif %}
         {% if edu.activities %}
-        \ResumeSubItem{Activities}{ {{ edu.activities[0] }}{% for act in edu.activities[1:] %}\\{\hspace*{6em}{{ act }}}{% endfor %} }
+        \ResumeSubItem{\hspace*{0.3em}Activities}{ {{ edu.activities[0] }}{% for act in edu.activities[1:] %}\\{\hspace*{6.3em}{{ act }}}{% endfor %} }
         {% endif %}
     {% endfor %}
   \ResumeEntryEnd

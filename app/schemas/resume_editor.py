@@ -11,7 +11,7 @@ class Education(BaseModel):
     start_date: str
     end_date: str
     gpa: Optional[str] = None
-    relevant_coursework: Optional[str] = None
+    relevant_coursework: Optional[list[str]] = None
     activities: Optional[list[str]] = None
 
 class Experience(BaseModel):
