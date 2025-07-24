@@ -24,8 +24,8 @@ app = FastAPI(
 
 origins = [
     "http://localhost:5173", 
-    "https://intern-hunters-lmewkotim-ophelia-neos-projects.vercel.app/",
-    "https://intern-hunters-ophelia-neo-ophelia-neos-projects.vercel.app/"
+    "https://intern-hunters-lmewkotim-ophelia-neos-projects.vercel.app",
+    "https://intern-hunters-ophelia-neo-ophelia-neos-projects.vercel.app"
 ]
 app.add_middleware(
     CORSMiddleware,
