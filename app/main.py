@@ -23,7 +23,8 @@ app = FastAPI(
 )
 
 origins = [
-    "http://localhost:5173", 
+    "http://localhost:5173",
+    "http://localhost:8080",
     "https://intern-hunters-lmewkotim-ophelia-neos-projects.vercel.app",
     "https://intern-hunters-ophelia-neo-ophelia-neos-projects.vercel.app"
 ]

@@ -63,7 +63,7 @@ async def register_user(
             value=refresh_token.create_session_token(session_id),
             httponly=True,
             secure=True,
-            samesite="Lax"
+            samesite="none"
         )
         return UserToken(access_token=user_token, token_type="bearer")
     except DuplicateEmailError:
@@ -101,7 +101,7 @@ async def login_user(
             value=refresh_token.create_session_token(session_id),
             httponly=True,
             secure=False,
-            samesite="Lax"
+            samesite="none"
         )
         return UserLoginReturns(access_token=user_token, token_type="bearer", name=user_creds.name)
     except NoAccountError:
@@ -146,7 +146,7 @@ async def refresh_user_token(
         value=UserRefreshToken().create_session_token(session_id),
         httponly=True,
         secure=False,
-        samesite="Lax"
+        samesite="none"
     )
     return UserToken(access_token=user_token, token_type="bearer")
 
