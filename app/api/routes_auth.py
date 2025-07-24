@@ -100,7 +100,7 @@ async def login_user(
             key="refresh_token",
             value=refresh_token.create_session_token(session_id),
             httponly=True,
-            secure=False,
+            secure=True,
             samesite="none"
         )
         return UserLoginReturns(access_token=user_token, token_type="bearer", name=user_creds.name)
@@ -145,7 +145,7 @@ async def refresh_user_token(
         key="refresh_token",
         value=UserRefreshToken().create_session_token(session_id),
         httponly=True,
-        secure=False,
+        secure=True,
         samesite="none"
     )
     return UserToken(access_token=user_token, token_type="bearer")
