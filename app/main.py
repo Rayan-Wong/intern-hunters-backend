@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from .api import routes_auth, routes_applications, routes_internship_listings, routes_resume_creator
 from .openapi import TAGS_METADATA, DESCRIPTION
@@ -34,6 +35,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(ProxyHeadersMiddleware)
 
 # principle: main composes routers
 # api routes expose endpoints
