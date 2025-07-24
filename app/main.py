@@ -22,7 +22,7 @@ app = FastAPI(
     description=DESCRIPTION
 )
 
-origins = ["http://localhost:5173"]
+origins = ["http://localhost:5173", "https://intern-hunters-lmewkotim-ophelia-neos-projects.vercel.app/"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
