@@ -60,4 +60,5 @@ def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: 
         logger.info(f"Internship Scraper found {len(result)} listings.")
         return list(dict.fromkeys(InternshipListing(**job) for job in result.to_dict("records")))
     except Exception as e:
+        logger.error(f"Scraper encountered issue: {e}")
         raise ScraperDown from e
