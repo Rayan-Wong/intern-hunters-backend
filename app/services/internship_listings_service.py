@@ -112,5 +112,5 @@ async def cache(r: Redis, listings: list[InternshipListing], key: str):
             pipe.expire(f"{key}_count", CACHE_EXPIRE, nx=True)
             await pipe.execute()
     except Exception as e:
-        logger.error(f"Failed to cache listings for {key}")
+        logger.error("Failed to cache listings for %s. Cause: %s", key, e, exc_info=True)
         return
