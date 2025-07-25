@@ -56,7 +56,7 @@ def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: 
                 raise ScraperDown from TimeoutError
         if jobs.empty:
             return [] # todo: decide what to do if no results
-        result = jobs[columns].replace({np.nan: None}) # thanks numpy
+        result = jobs[columns].replace({np.nan: None}).dropna(subset=["job_url"]) # thanks numpy
         logger.info(f"Internship Scraper found {len(result)} listings.")
         return list(dict.fromkeys(InternshipListing(**job) for job in result.to_dict("records")))
     except Exception as e:
