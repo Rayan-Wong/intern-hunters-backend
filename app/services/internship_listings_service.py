@@ -99,8 +99,18 @@ async def get_listings(
         raise e
 
 async def cache(r: Redis, listings: list[InternshipListing], key: str):
-    for res in listings:
-        score = await r.incr(f"{key}_count")
-        await r.expire(f"{key}_count", CACHE_EXPIRE, nx=True)
-        await r.zadd(f"{key}", {res.model_dump_json(): score})
-        await r.expire(f"{key}", CACHE_EXPIRE, nx=True)
+    try:
+        current_count = await r.get(f"{key}_count")
+        base_score = int(current_count) if current_count else 0
+        mapping = dict()
+        for i, listing in enumerate(listings):
+            mapping[listing.model_dump_json()] = base_score + i
+        async with r.pipeline() as pipe:
+            pipe.zadd(key, mapping)
+            pipe.expire(key, CACHE_EXPIRE, nx=True)
+            pipe.incrby(f"{key}_count", len(listings))
+            pipe.expire(f"{key}_count", CACHE_EXPIRE, nx=True)
+            await pipe.execute()
+    except Exception as e:
+        logger.error("Failed to cache listings for %s. Cause: %s", key, e, exc_info=True)
+        return
