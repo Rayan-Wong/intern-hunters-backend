@@ -88,6 +88,10 @@ async def test_upload_resume(
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
+    result2 = await client.get("/api/upload_status", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result2.json()["has_uploaded"] == True
     mock_boto3.upload_resume.assert_awaited()
 
 @pytest.mark.asyncio

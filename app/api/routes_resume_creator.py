@@ -6,8 +6,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.schemas.resume_editor import Resume
-from app.services.resume_creator_service import get_parsed, fetch_resume, update_resume, make_resume
+from app.schemas.resume_editor import Resume, UploadStatus
+from app.services.resume_creator_service import (
+    get_parsed,
+    fetch_resume,
+    update_resume,
+    make_resume,
+    get_uploaded_status
+)
 from app.dependencies.security import verify_jwt
 from app.db.database import get_session
 from app.exceptions.internship_listings_exceptions import R2Down, NotAddedDetails, GeminiDown
@@ -176,4 +182,22 @@ async def create_resume(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SOMETHING_WRONG
+        ) from e
+
+@router.get("/upload_status",
+    responses=BAD_JWT,
+    response_model=UploadStatus,
+    tags=["resume_editor"]
+)
+async def get_status(
+    db: Annotated[AsyncSession, Depends(get_session)],
+    user_id: Annotated[uuid.UUID, Depends(verify_jwt)]
+):
+    """Gets uploaded status of user"""
+    try:
+        return await get_uploaded_status(db, user_id)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=NEVER_UPLOADED_DETAILS
         ) from e

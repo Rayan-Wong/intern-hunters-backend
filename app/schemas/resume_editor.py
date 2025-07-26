@@ -47,3 +47,6 @@ class Resume(BaseModel):
     experience: Optional[list[Experience]] = None
     projects: Optional[list[Project]] = None
     skills: Optional[list[SkillCategory]] = None
+
+class UploadStatus(BaseModel):
+    has_uploaded: bool
