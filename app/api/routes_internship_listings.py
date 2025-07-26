@@ -99,7 +99,9 @@ async def get_internships(
 ):
     """Gets internship listings from users' preferences"""
     try:
-        user_internships = await get_listings(db, user_id, redis, ACTIVE_PORTALS, PAGE_LENGTH, industry, page)
+        user_internships = await get_listings(
+            db, user_id, redis, ACTIVE_PORTALS, PAGE_LENGTH, industry, page
+        )
         return user_internships
     except NotAddedDetails as e:
         raise HTTPException(
@@ -123,7 +125,7 @@ async def get_internships(
     response_model=list[InternshipListing],
     tags=["internship_listings"]
 )
-async def get_internships(
+async def get_less_internships(
     db: Annotated[AsyncSession, Depends(get_session)],
     user_id: Annotated[uuid.UUID, Depends(verify_jwt)],
     redis: Annotated[Redis, Depends(get_redis)]

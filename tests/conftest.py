@@ -64,7 +64,7 @@ class FakeRedis:
     """Fake Redis"""
     def __init__(self):
         self.storage: list[InternshipListing] = []
-    
+
     async def zrange(self, unused: str, start: int, end: int):
         """Fake zrange()"""
         end = min(end + 1, len(self.storage))
@@ -72,7 +72,7 @@ class FakeRedis:
         for i in range(start, end, 1):
             result.append(self.storage[i].model_dump_json())
         return result
-    
+
     async def add(self, listings: list[InternshipListing]):
         """Fake cache adding"""
         self.storage.extend(listings)
@@ -87,7 +87,7 @@ def mock_cache():
     """Fixture to mock caching"""
     async def fake_add(fake_redis: FakeRedis, listings: list[InternshipListing], unused: str):
         await fake_redis.add(listings)
-    
+
     mock = AsyncMock(side_effect=fake_add)
     with patch("app.services.internship_listings_service.cache", new=mock) as patcher:
         yield mock

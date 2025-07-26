@@ -1,7 +1,9 @@
+"""Module for logging"""
 import logging
 import sys
 
 def setup_custom_logger(name: str):
+    """Creates custom logger to be attached at module level"""
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 

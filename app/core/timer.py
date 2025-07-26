@@ -1,8 +1,10 @@
+"""Module for timer to time execution of function"""
 import time
 import functools
 import inspect
 
 def timed(label: str = ""):
+    """Decorator for timer"""
     def decorator(func):
         is_async = inspect.iscoroutinefunction(func)
 

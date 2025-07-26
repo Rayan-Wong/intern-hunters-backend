@@ -1,5 +1,5 @@
 """Modules responsible for jobspy and post-processing"""
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from concurrent.futures import ThreadPoolExecutor
 
 from jobspy import scrape_jobs
 import numpy as np
@@ -24,7 +24,8 @@ columns = [
     "description"
 ]
 
-MAX_HOURS = 24 * 7 * 3 # number of hours in a day * number of hours in a week * number of weeks in a month
+# number of hours in a day * number of hours in a week * number of weeks in a month
+MAX_HOURS = 24 * 7 * 3
 
 @timed("Internship Scraper")
 def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: str | None = None):
@@ -51,9 +52,9 @@ def sync_scrape_jobs(preference: str, start: int, end: int, preferred_industry: 
             )
             try:
                 jobs = future.result(timeout=TIMEOUT)
-            except TimeoutError:
+            except TimeoutError as e:
                 logger.error("Job Scraper API took too long to respond!")
-                raise ScraperDown from TimeoutError
+                raise ScraperDown from e
         if jobs.empty:
             return [] # todo: decide what to do if no results
         result = jobs[columns].replace({np.nan: None}).dropna(subset=["job_url"]) # thanks numpy

@@ -76,7 +76,7 @@ def construct_bad_file_args(get_bad_resume: TextIO):
 # todo: not need to patch by setting up local s3
 @patch('app.services.internship_listings_service.R2')
 async def test_upload_resume(
-    mock_r2, 
+    mock_r2,
     client: AsyncClient,
     get_user_token: str,
     construct_file_args: dict[str, tuple[str, TextIO, str]],

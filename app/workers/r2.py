@@ -15,6 +15,7 @@ from app.core.logger import setup_custom_logger
 logger = setup_custom_logger(__name__)
 
 class R2:
+    """Class for R2 upload and download"""
     def __init__(self):
         """Initialises boto3 session"""
         self.settings = get_settings()
@@ -54,6 +55,7 @@ class R2:
         self,
         user_id: uuid.UUID
     ) -> io.BytesIO:
+        """Retrieves from local cache first, if not R2"""
         try:
             # check local cache first
             path = self.settings.local_cache_dir + f"/resumes/resume_{user_id}.pdf"
