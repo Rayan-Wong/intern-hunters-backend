@@ -37,6 +37,7 @@ class UserApplicationModify(UserApplicationBase):
     id: int
 
 class ApplicationStatusCounts(BaseModel):
+    """Schema of the number of applications of each status for a user"""
     applied: int
     interview: int
     pending: int

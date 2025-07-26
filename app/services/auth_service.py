@@ -69,11 +69,11 @@ class UserAuth:
             return user_details
         except VerificationError:
             await self.__db.rollback()
-            logger.warning(f"Account used the wrong password.")
+            logger.warning("Account used the wrong password.")
             raise WrongPasswordError from VerificationError
         except NoResultFound:
             await self.__db.rollback()
-            logger.warning(f"Account with that email does not exist.")
+            logger.warning("Account with that email does not exist.")
             raise NoAccountError from NoResultFound
         except Exception as e:
             await self.__db.rollback()
@@ -95,7 +95,7 @@ class UserAuth:
             return user.session_id
         except NoResultFound:
             await self.__db.rollback()
-            logger.warning(f"Account with that email does not exist.")
+            logger.warning("Account with that email does not exist.")
             raise NoAccountError from NoResultFound
         except Exception as e:
             await self.__db.rollback()

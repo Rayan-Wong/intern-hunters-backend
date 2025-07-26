@@ -85,7 +85,9 @@ async def get_listings(
         if len(result) != cache_size:
             api_start = (page * (cache_size // job_portals)) + (len(result) // job_portals)
             api_end = cache_end // job_portals
-            api_result = await to_thread.run_sync(sync_scrape_jobs, user.preference, api_start, api_end, industry)
+            api_result = await to_thread.run_sync(
+                sync_scrape_jobs, user.preference, api_start, api_end, industry
+            )
             await cache(redis, api_result, key)
             result = list(dict.fromkeys(result + api_result))
         logger.info(f"Total result size of {len(result)}")
@@ -99,6 +101,7 @@ async def get_listings(
         raise e
 
 async def cache(r: Redis, listings: list[InternshipListing], key: str):
+    """Sends listings to redis cache on zset and incr for each key and counts of key respectively"""
     try:
         current_count = await r.get(f"{key}_count")
         base_score = int(current_count) if current_count else 0
