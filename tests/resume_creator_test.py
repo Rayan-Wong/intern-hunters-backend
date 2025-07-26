@@ -65,27 +65,50 @@ async def test_create_resume(
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
+    result2 = await client.get("/api/upload_status", headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
+    assert result2.json()["has_uploaded"] == True
     mock_boto3.upload_resume.assert_awaited()
 
 @pytest.mark.asyncio
-async def test_resume(client: AsyncClient, get_user_token: str):
-    """Tests if user with skills can get parsed resume"""
+@patch('app.services.resume_creator_service.R2')
+async def test_get_parsed_resume(
+    mock_r2,
+    client: AsyncClient,
+    get_user_token: str,
+    get_resume_details: Resume,
+    mock_boto3
+):
+    """Tests if user can get parsed resume"""
+    mock_r2.return_value = mock_boto3
+    await client.post("/api/resume", json=get_resume_details, headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
     result = await client.get("/api/parsing", headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
-    assert result.json()
+    mock_boto3.upload_resume.assert_awaited()
 
 @pytest.mark.asyncio
 @patch('app.services.resume_creator_service.R2')
-async def test_download_resume(mock_r2, client: AsyncClient, get_user_token: str, mock_boto3):
-    """Tests if user without skills can download resume"""
+async def test_get_resume(
+    mock_r2,
+    client: AsyncClient,
+    get_user_token: str,
+    get_resume_details: Resume,
+    mock_boto3
+):
+    """Tests if user can get resume"""
     mock_r2.return_value = mock_boto3
+    await client.post("/api/resume", json=get_resume_details, headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
     result = await client.get("/api/resume", headers={
         "Authorization": f"Bearer {get_user_token}"
     })
     assert result.status_code == status.HTTP_200_OK
-    mock_boto3.download_resume.assert_awaited()
 
 @pytest.mark.asyncio
 @patch('app.services.resume_creator_service.R2')
@@ -98,6 +121,9 @@ async def test_edit_resume(
 ):
     """Tests if user can create resume"""
     mock_r2.return_value = mock_boto3
+    await client.post("/api/resume", json=get_resume_details, headers={
+        "Authorization": f"Bearer {get_user_token}"
+    })
     result = await client.put("/api/resume", json=get_resume_details, headers={
         "Authorization": f"Bearer {get_user_token}"
     })

@@ -15,7 +15,7 @@ from app.workers.resume_generator import create_from_template
 from app.workers.gemini import get_gemini_client
 from app.exceptions.internship_listings_exceptions import NotAddedDetails
 from app.exceptions.resume_creator_exceptions import NotUploadedResume
-from app.schemas.resume_editor import Resume
+from app.schemas.resume_editor import Resume, UploadStatus
 from app.core.logger import setup_custom_logger
 from app.core.timer import timed
 
@@ -88,4 +88,16 @@ async def make_resume(db: AsyncSession, user_id: uuid.UUID, details: Resume):
         return resume
     except Exception as e:
         await db.rollback()
+        raise e
+
+async def get_uploaded_status(db: AsyncSession, user_id: uuid.UUID):
+    """Gets uploaded status of user"""
+    try:
+        stmt = select(User).where(User.id == user_id)
+        result = await db.execute(stmt)
+        user = result.scalar_one()
+        return UploadStatus(has_uploaded=user.has_uploaded)
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Unable to get resume upload status for {user_id}")
         raise e
