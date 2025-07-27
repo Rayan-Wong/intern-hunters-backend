@@ -37,7 +37,7 @@ jobs:
         AWS_REPOSITORY: orbital/backend
       run: |
         IMAGE=ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/intern-hunters-backend:latest
-        docker tag image \
+        docker tag $IMAGE \
         $AWS_REGISTRY/$AWS_REPOSITORY:latest
         docker push $AWS_REGISTRY/$AWS_REPOSITORY:latest
 
