@@ -45,6 +45,7 @@ execnet==2.1.1
 fastapi==0.115.12
 fastapi-cli==0.0.7
 filetype==1.2.0
+flake8==7.3.0
 flupy==1.2.2
 fonttools==4.58.2
 frozenlist==1.6.2
@@ -89,6 +90,7 @@ propcache==0.3.1
 psycopg2-binary==2.9.10
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
+pycodestyle==2.14.0
 pycparser==2.22
 pydantic==2.11.4
 pydantic-extra-types==2.10.4
@@ -96,6 +98,7 @@ pydantic-settings==2.9.1
 pydantic_core==2.33.2
 pydyf==0.11.0
 pyee==13.0.0
+pyflakes==3.4.0
 Pygments==2.19.1
 PyJWT==2.9.0
 pylint==3.3.7

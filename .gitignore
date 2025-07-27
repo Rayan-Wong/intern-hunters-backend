@@ -5,6 +5,7 @@ __pycache__
 .coverage
 .coverage.*
 *.pdf
+!test_resume.pdf
 # windows
 .venv
 .env
