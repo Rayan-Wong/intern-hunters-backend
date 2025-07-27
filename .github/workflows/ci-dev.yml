@@ -9,72 +9,10 @@ permissions:
   packages: write
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
-
-    env:
-      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      REFRESH_TOKEN_SECRET_KEY: ${{ secrets.REFRESH_TOKEN_SECRET_KEY }}
-      TEST_RESUME: ${{ secrets.TEST_RESUME }}
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      SYNC_DATABASE_URL: ${{ secrets.SYNC_DATABASE_URL }}
-      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-      R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-      R2_BUCKET_URL: ${{ secrets.R2_BUCKET_URL }}
-      R2_REGION: ${{ secrets.R2_REGION }}
-      REDIS_HOST: ${{ secrets.REDIS_HOST }}
-      REDIS_PORT: ${{ secrets.REDIS_PORT }}
     steps:
 
-    - name: Checkout dev branch
-      uses: actions/checkout@v4
-      with:
-        ref: dev
-
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.12"
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-    - name: Download test resume
-      run: |
-        curl -L "$TEST_RESUME" -o ./tests/test_resume.pdf
-
-    - name: Download LaTeX packages
-      run: |
-        sudo apt update
-        sudo apt install -y --no-install-recommends \
-          build-essential \
-          ca-certificates \
-          texlive-xetex \
-          texlive-fonts-recommended \
-          texlive-fonts-extra \
-          texlive-latex-recommended \
-          texlive-latex-extra \
-          lmodern
-
-    - name: Lint with flake8
-      run: |
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-    - name: Test with pytest
-      run: |
-        pytest
-  
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-
-    steps:
     - name: Checkout dev branch
       uses: actions/checkout@v4
       with:
@@ -87,6 +25,42 @@ jobs:
       run: |
         IMAGE=ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/intern-hunters-backend:latest
         docker build -t $IMAGE .
+
+    - name: Run linter in container
+      run: |
+        IMAGE=ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/intern-hunters-backend:latest
+        docker run --rm \
+          -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
+          -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+          -e REFRESH_TOKEN_SECRET_KEY="${{ secrets.REFRESH_TOKEN_SECRET_KEY }}" \
+          -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+          -e SYNC_DATABASE_URL="${{ secrets.SYNC_DATABASE_URL }}" \
+          -e R2_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}" \
+          -e R2_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}" \
+          -e R2_BUCKET_NAME="${{ secrets.R2_BUCKET_NAME }}" \
+          -e R2_BUCKET_URL="${{ secrets.R2_BUCKET_URL }}" \
+          -e R2_REGION="${{ secrets.R2_REGION }}" \
+          -e REDIS_HOST="${{ secrets.REDIS_HOST }}" \
+          -e REDIS_PORT="${{ secrets.REDIS_PORT }}" \
+          $IMAGE flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Run tests in container
+      run: |
+        IMAGE=ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/intern-hunters-backend:latest
+        docker run --rm \
+          -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
+          -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+          -e REFRESH_TOKEN_SECRET_KEY="${{ secrets.REFRESH_TOKEN_SECRET_KEY }}" \
+          -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+          -e SYNC_DATABASE_URL="${{ secrets.SYNC_DATABASE_URL }}" \
+          -e R2_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}" \
+          -e R2_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}" \
+          -e R2_BUCKET_NAME="${{ secrets.R2_BUCKET_NAME }}" \
+          -e R2_BUCKET_URL="${{ secrets.R2_BUCKET_URL }}" \
+          -e R2_REGION="${{ secrets.R2_REGION }}" \
+          -e REDIS_HOST="${{ secrets.REDIS_HOST }}" \
+          -e REDIS_PORT="${{ secrets.REDIS_PORT }}" \
+          $IMAGE pytest
 
     - name: Push image
       run: |
