@@ -85,10 +85,10 @@ jobs:
 
     - name: Build and tag image
       run: |
-        IMAGE=ghcr.io/${{ github.repository_owner }}/intern-hunters-backend:latest
+        IMAGE=ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/intern-hunters-backend:latest
         docker build -t $IMAGE .
-        
+
     - name: Push image
       run: |
-        IMAGE=ghcr.io/${{ github.repository_owner }}/intern-hunters-backend:latest
+        IMAGE=ghcr.io/$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')/intern-hunters-backend:latest
         docker push $IMAGE
