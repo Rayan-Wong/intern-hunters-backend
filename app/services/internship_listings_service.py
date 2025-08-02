@@ -79,8 +79,7 @@ async def get_listings(
         logger.info(f"Starting cache value: {cache_start}, Ending cache value: {cache_end}")
         key = user.preference + (f"_{industry}" if industry else "")
         logger.info(f"Using redis key {key}")
-        raw_result = await redis.zrange(key, cache_start, cache_end - 1)
-        result = list(dict.fromkeys(InternshipListing(**json.loads(obj)) for obj in raw_result))
+        result = await fetch(redis, key, cache_start, cache_end)
         logger.info(f"Number of cache hits: {len(result)}")
         if len(result) != cache_size:
             api_start = (page * (cache_size // job_portals)) + (len(result) // job_portals)
@@ -99,6 +98,16 @@ async def get_listings(
     except Exception as e:
         logger.error(f"Internship listings for {user_id} failed to be retrieved.")
         raise e
+
+async def fetch(r: Redis, key: str, start: int, end: int):
+    """Fetches listings from redis cache for key. Returns empty list if none"""
+    try:
+        raw_result = await r.zrange(key, start, end - 1)
+        result = list(dict.fromkeys(InternshipListing(**json.loads(obj)) for obj in raw_result))
+        return result
+    except Exception as e:
+        logger.error("Failed to retrieve cache listings for %s. Cause: %s", key, e, exc_info=True)
+        return []
 
 async def cache(r: Redis, listings: list[InternshipListing], key: str):
     """Sends listings to redis cache on zset and incr for each key and counts of key respectively"""
