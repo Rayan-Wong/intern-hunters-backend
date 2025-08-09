@@ -69,6 +69,7 @@ async def make_resume(db: AsyncSession, user_id: uuid.UUID, details: Resume):
         resume = await to_thread.run_sync(create_from_template, details, user_id)
         await R2().upload_resume(resume, user_id)
         user_preference = await get_gemini_client().get_preference(resume.getvalue())
+        logger.info(f"Preference for {user_id} captured")
         stmt1 = upsert(UserSkill).values({
             "user_id": user_id,
             "parsed_resume": details.model_dump_json(),
