@@ -46,6 +46,8 @@ class R2:
             file.seek(0)
             logger.info(f"Resume upload for {user_id} successful, beginning caching.")
             await self.__cache(file, user_id)
+        except CacheFail as e:
+            pass
         except Exception as e:
             logger.error(f"Failed to upload {user_id}'s resume from R2.")
             raise R2Down from e
@@ -61,25 +63,31 @@ class R2:
             path = self.settings.local_cache_dir + f"/resumes/resume_{user_id}.pdf"
             if await os.path.exists(path):
                 logger.info(f"{user_id}'s resume found in cache.")
-                async with async_open(path, "rb") as f:
-                    return io.BytesIO(await f.read())
-            else:
-                logger.info(f"{user_id}'s resume not in cache. Downloading from R2.")
-                file = io.BytesIO()
-                async with self.session.client(
-                    service_name="s3",
-                    endpoint_url=self.settings.r2_bucket_url,
-                    region_name=self.settings.r2_region
-                ) as s3:
-                    await s3.download_fileobj(
-                        self.settings.r2_bucket_name,
-                        f"{user_id}/resume.pdf",
-                        Fileobj=file
-                    )
-                file.seek(0)
-                logger.info(f"{user_id}'s resume downloaded, beginning caching.")
+                try:
+                    async with async_open(path, "rb") as f:
+                        return io.BytesIO(await f.read())
+                except Exception as e:
+                    logger.info(f"Failed to retrieve {user_id}'s from cache, falling back to R2.")
+                    pass
+            logger.info(f"{user_id}'s resume not in cache. Downloading from R2.")
+            file = io.BytesIO()
+            async with self.session.client(
+                service_name="s3",
+                endpoint_url=self.settings.r2_bucket_url,
+                region_name=self.settings.r2_region
+            ) as s3:
+                await s3.download_fileobj(
+                    self.settings.r2_bucket_name,
+                    f"{user_id}/resume.pdf",
+                    Fileobj=file
+                )
+            file.seek(0)
+            logger.info(f"{user_id}'s resume downloaded, beginning caching.")
+            try:
                 await self.__cache(file, user_id)
-                return file
+            except CacheFail as e:
+                pass
+            return file
         except Exception as e:
             logger.error(f"Failed to retrieve {user_id}'s resume from R2.")
             raise R2Down from e
