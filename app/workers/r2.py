@@ -1,6 +1,7 @@
 """Modules for boto3 and its dependencies"""
 import io
 import uuid
+import asyncio
 
 import aioboto3
 from aiofiles import open as async_open
@@ -45,7 +46,7 @@ class R2:
                 )
             file.seek(0)
             logger.info(f"Resume upload for {user_id} successful, beginning caching.")
-            await self.__cache(file, user_id)
+            asyncio.create_task(self.__cache(file, user_id))
         except CacheFail as e:
             pass
         except Exception as e:
@@ -83,10 +84,7 @@ class R2:
                 )
             file.seek(0)
             logger.info(f"{user_id}'s resume downloaded, beginning caching.")
-            try:
-                await self.__cache(file, user_id)
-            except CacheFail as e:
-                pass
+            asyncio.create_task(self.__cache(file, user_id))
             return file
         except Exception as e:
             logger.error(f"Failed to retrieve {user_id}'s resume from R2.")
