@@ -113,8 +113,8 @@ async def fetch(r: Redis, key: str, start: int, end: int):
 async def cache(r: Redis, listings: list[InternshipListing], key: str):
     """Sends listings to redis cache on zset and incr for each key and counts of key respectively"""
     try:
-        current_count = await r.get(f"{key}_count")
-        base_score = int(current_count) if current_count else 0
+        new_count = await r.incrby(f"{key}_count", len(listings))
+        base_score = int(new_count) - len(listings)
         mapping = dict()
         for i, listing in enumerate(listings):
             mapping[listing.model_dump_json()] = base_score + i
