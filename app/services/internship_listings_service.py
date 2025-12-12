@@ -2,6 +2,7 @@
 import uuid
 import io
 import json
+import asyncio
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
@@ -87,7 +88,7 @@ async def get_listings(
             api_result = await to_thread.run_sync(
                 sync_scrape_jobs, user.preference, api_start, api_end, industry
             )
-            await cache(redis, api_result, key)
+            asyncio.create_task(cache(redis, api_result, key))
             result = list(dict.fromkeys(result + api_result))
         logger.info(f"Total result size of {len(result)}")
         return result
