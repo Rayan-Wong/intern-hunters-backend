@@ -46,7 +46,7 @@ class R2:
                 )
             file.seek(0)
             logger.info(f"Resume upload for {user_id} successful, beginning caching.")
-            asyncio.create_task(self.__cache(file, user_id))
+            await self.__cache(file, user_id)
         except CacheFail as e:
             pass
         except Exception as e:
@@ -84,7 +84,7 @@ class R2:
                 )
             file.seek(0)
             logger.info(f"{user_id}'s resume downloaded, beginning caching.")
-            asyncio.create_task(self.__cache(file, user_id))
+            await self.__cache(file, user_id)
             return file
         except Exception as e:
             logger.error(f"Failed to retrieve {user_id}'s resume from R2.")
